@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Stepper, Step, StepLabel, Button, Typography, Paper } from '@mui/material';
+import { Box, Stepper, Step, StepLabel, Button, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { BasicInfoStep } from './BasicInfoStep';
 import { LocationStep } from './LocationStep';

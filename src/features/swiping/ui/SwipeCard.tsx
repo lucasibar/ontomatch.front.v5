@@ -1,4 +1,4 @@
-import { Paper, Typography, Box, Skeleton } from '@mui/material';
+import { Paper, Typography, Box } from '@mui/material';
 
 // Basic type for MVP
 interface Profile {

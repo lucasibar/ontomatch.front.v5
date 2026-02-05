@@ -1,5 +1,5 @@
 import { baseApi } from '../../../shared/api/baseApi';
-import { Socket } from 'socket.io-client';
+// import { Socket } from 'socket.io-client'; // unused
 
 // Types
 export interface Message {
@@ -26,7 +26,7 @@ export const chatApi = baseApi.injectEndpoints({
         }),
         getMessages: builder.query<Message[], { conversationId: string }>({
             query: ({ conversationId }) => `/conversations/${conversationId}/messages`,
-            providesTags: (result, error, arg) => [{ type: 'Conversation', id: arg.conversationId }],
+            providesTags: (_result, _error, arg) => [{ type: 'Conversation', id: arg.conversationId }],
         }),
         sendMessage: builder.mutation<void, { conversationId: string; body: string }>({
             queryFn: () => ({ data: undefined }), // Socket only for sending? Or REST fall back? 

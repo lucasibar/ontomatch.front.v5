@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Typography, CircularProgress, Slide } from '@mui/material';
+import { Box, Button, Typography, CircularProgress } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useGetFeedQuery, useSwipeMutation, SwipeActionEnum } from '../api/discoveryApi';
@@ -52,7 +52,6 @@ export const SwipeDeck = () => {
                 <Button
                     variant="contained"
                     color="error"
-                    shape="circle"
                     sx={{ borderRadius: '50%', minWidth: 64, height: 64 }}
                     onClick={() => handleSwipe(SwipeActionEnum.PASS)}
                 >

@@ -2,10 +2,12 @@ import { baseApi } from '../../../shared/api/baseApi';
 
 
 // Redefine if we can't import comfortably across monorepo without strict setup
-export enum SwipeActionEnum {
-    LIKE = 'LIKE',
-    PASS = 'PASS',
-}
+export const SwipeActionEnum = {
+    LIKE: 'LIKE',
+    PASS: 'PASS',
+} as const;
+
+export type SwipeActionEnum = (typeof SwipeActionEnum)[keyof typeof SwipeActionEnum];
 
 export const discoveryApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({

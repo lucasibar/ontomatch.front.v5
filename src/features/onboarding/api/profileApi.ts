@@ -1,32 +1,32 @@
-import { baseApi } from '../../shared/api/baseApi';
+import { baseApi } from '../../../shared/api/baseApi';
 
 export const profileApi = baseApi.injectEndpoints({
-    endpoints: (builder) => ({
-        getMe: builder.query<any, void>({
+    endpoints: (builder: any) => ({
+        getMe: builder.query({
             query: () => '/profiles/me',
             providesTags: ['User'],
         }),
-        updateProfile: builder.mutation<any, any>({
-            query: (body) => ({
+        updateProfile: builder.mutation({
+            query: (body: any) => ({
                 url: '/profiles/me',
                 method: 'POST',
                 body,
             }),
             invalidatesTags: ['User'],
         }),
-        addPhoto: builder.mutation<void, { url: string; publicId: string }>({
-            query: (body) => ({
+        addPhoto: builder.mutation({
+            query: (body: any) => ({
                 url: '/profiles/photos',
                 method: 'POST',
                 body,
             }),
             invalidatesTags: ['User'],
         }),
-        getSignature: builder.query<{ signature: string; timestamp: number; apiKey: string; cloudName: string }, void>({
+        getSignature: builder.query({
             query: () => '/media/signature',
         }),
-        searchLocations: builder.query<any[], string>({
-            query: (q) => `/locations?q=${q}`,
+        searchLocations: builder.query({
+            query: (q: string) => `/locations?q=${q}`,
         }),
     }),
 });

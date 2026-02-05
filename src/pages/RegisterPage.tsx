@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Box, Button, TextField, Typography, Paper, Container } from '@mui/material';
-import { useLoginMutation } from '../features/auth/api/authApi'; // We will use a new register mutation ideally or this one if modified
 import { useNavigate, Link } from 'react-router-dom';
 import { baseApi } from '../shared/api/baseApi';
 
@@ -14,16 +13,9 @@ export const extendedAuthApi = baseApi.injectEndpoints({
                 method: 'POST',
                 body: credentials,
             }),
-            async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+            async onQueryStarted(_arg, { queryFulfilled }) {
                 try {
-                    const { data } = await queryFulfilled;
-                    // We reuse the same logic as login, setting credentials
-                    const user = { id: 'uuid', email: arg.email }; // Mock user for now or decode from token
-                    // setCredentials logic is usually imported. 
-                    // For simplicity let's just let the user login after register or auto-login.
-                    // The backend register returns login response (token).
-                    //  dispatch(setCredentials({ user, token: data.access_token })); 
-                    // Actually let's import setCredentials from slice to auto-login
+                    await queryFulfilled;
                 } catch (err) { }
             },
         }),

@@ -1,7 +1,6 @@
 import { Autocomplete, TextField, Typography, Box } from '@mui/material';
 import { useLazySearchLocationsQuery } from '../api/profileApi';
 import { useState, useEffect } from 'react';
-import { useDebounce } from '../../../shared/hooks/useDebounce'; // Assuming we have or create this
 
 export const LocationStep = ({ data, onChange }: { data: any, onChange: (d: any) => void }) => {
     const [search, setSearch] = useState('');
@@ -19,11 +18,11 @@ export const LocationStep = ({ data, onChange }: { data: any, onChange: (d: any)
         <Box>
             <Typography variant="h6" gutterBottom>Where are you based?</Typography>
             <Autocomplete
-                options={results || []}
+                options={(results as any[]) || []}
                 getOptionLabel={(option: any) => `${option.locality}, ${option.province}`}
                 loading={isLoading}
-                onInputChange={(e, newInputValue) => setSearch(newInputValue)}
-                onChange={(e, value: any) => {
+                onInputChange={(_e, newInputValue) => setSearch(newInputValue)}
+                onChange={(_e, value: any) => {
                     if (value) {
                         onChange({ ...data, locationId: value.id, locationText: value.locality });
                     }

@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '../../../app/store';
 
 export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
-    const { data: initialMessages, isLoading } = useGetMessagesQuery({ conversationId });
+    const { data: initialMessages } = useGetMessagesQuery({ conversationId });
     const [messages, setMessages] = useState<any[]>([]);
     const [inputText, setInputText] = useState('');
     const socketRef = useRef<Socket | null>(null);
