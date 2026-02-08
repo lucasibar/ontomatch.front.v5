@@ -22,6 +22,14 @@ export const profileApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ['User'],
         }),
+        updatePreferences: builder.mutation({
+            query: (body: any) => ({
+                url: '/preferences/me',
+                method: 'PATCH',
+                body,
+            }),
+            invalidatesTags: ['User'],
+        }),
         getSignature: builder.query({
             query: () => '/media/signature',
         }),
@@ -35,6 +43,7 @@ export const {
     useGetMeQuery,
     useUpdateProfileMutation,
     useAddPhotoMutation,
+    useUpdatePreferencesMutation,
     useGetSignatureQuery,
     useLazyGetSignatureQuery,
     useSearchLocationsQuery,

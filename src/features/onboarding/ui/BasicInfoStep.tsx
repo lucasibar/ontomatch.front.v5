@@ -1,14 +1,32 @@
-import { TextField, Box, MenuItem, Typography } from '@mui/material';
+import { TextField, Box, Typography, Autocomplete } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { useLazySearchLocationsQuery } from '../api/profileApi';
 
 export const BasicInfoStep = ({ data, onChange }: { data: any, onChange: (d: any) => void }) => {
+    // Location Search Logic
+    const [search, setSearch] = useState('');
+    const [trigger, { data: results, isLoading }] = useLazySearchLocationsQuery();
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (search.length > 2) trigger(search);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [search, trigger]);
+
     return (
         <Box display="flex" flexDirection="column" gap={3}>
-            <Typography variant="h6">Tell us about yourself</Typography>
-
-            <TextField label="Display Name" value={data.name || ''} onChange={(e) => onChange({ ...data, name: e.target.value })} fullWidth />
+            <Typography variant="h6">Datos Personales Básicos</Typography>
 
             <TextField
-                label="Birth Date"
+                label="Nombre"
+                value={data.name || ''}
+                onChange={(e) => onChange({ ...data, name: e.target.value })}
+                fullWidth
+            />
+
+            <TextField
+                label="Fecha de Nacimiento"
                 type="date"
                 InputLabelProps={{ shrink: true }}
                 value={data.birthdate || ''}
@@ -17,44 +35,39 @@ export const BasicInfoStep = ({ data, onChange }: { data: any, onChange: (d: any
             />
 
             <TextField
-                select
-                label="Gender"
-                value={data.gender || ''}
-                onChange={(e) => onChange({ ...data, gender: e.target.value })}
+                label="Altura (cm)"
+                type="number"
+                value={data.height || ''}
+                onChange={(e) => onChange({ ...data, height: parseInt(e.target.value) })}
                 fullWidth
-            >
-                <MenuItem value="male">Male</MenuItem>
-                <MenuItem value="female">Female</MenuItem>
-                <MenuItem value="non_binary">Non-Binary</MenuItem>
-            </TextField>
+                helperText="Ej: 175"
+            />
+
+            <Autocomplete
+                options={(results as any[]) || []}
+                getOptionLabel={(option: any) => `${option.locality}, ${option.province}`}
+                loading={isLoading}
+                onInputChange={(_e, newInputValue) => setSearch(newInputValue)}
+                onChange={(_e, value: any) => {
+                    if (value) {
+                        onChange({ ...data, locationId: value.id, locationText: value.locality });
+                    }
+                }}
+                renderInput={(params) => <TextField {...params} label="Localidad / Ciudad" fullWidth />}
+                value={data.locationText ? { locality: data.locationText, province: '' } : null}
+                // Note: value prop might be tricky if object doesn't match option reference. 
+                // For MVP, if they select, it sets text. If coming back, it shows text if we map it correctly.
+                // Simplified: just rely on input text or don't control value fully if complex.
+                // Let's rely on controlled input via freeSolo or just trust the selection.
+                isOptionEqualToValue={(option, value) => option.locality === value.locality}
+            />
 
             <TextField
-                select
-                label="Orientation"
-                value={data.orientation || ''}
-                onChange={(e) => onChange({ ...data, orientation: e.target.value })}
+                label="Barrio / Zona (Opcional)"
+                value={data.neighborhood || ''}
+                onChange={(e) => onChange({ ...data, neighborhood: e.target.value })}
                 fullWidth
-            >
-                <MenuItem value="heterosexual">Heterosexual</MenuItem>
-                <MenuItem value="homosexual">Homosexual</MenuItem>
-                <MenuItem value="bisexual">Bisexual</MenuItem>
-                <MenuItem value="pansexual">Pansexual</MenuItem>
-                <MenuItem value="other">Other</MenuItem>
-            </TextField>
-
-            <TextField
-                select
-                label="Looking For"
-                value={data.lookingFor || ''}
-                onChange={(e) => onChange({ ...data, lookingFor: e.target.value })}
-                fullWidth
-            >
-                <MenuItem value="relationship">Relationship</MenuItem>
-                <MenuItem value="casual">Casual</MenuItem>
-                <MenuItem value="friends">Friends</MenuItem>
-                <MenuItem value="networking">Networking</MenuItem>
-                <MenuItem value="unspecified">Unspecified</MenuItem>
-            </TextField>
+            />
         </Box>
     );
 };
