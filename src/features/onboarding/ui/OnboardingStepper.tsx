@@ -6,8 +6,7 @@ import { IdentityStep } from './IdentityStep';
 import { BioStep } from './BioStep';
 import { PreferencesStep } from './PreferencesStep';
 import { PhotosStep } from './PhotosStep';
-import { useUpdateProfileMutation } from '../api/profileApi';
-// import { useUpdatePreferencesMutation } from '../api/profileApi'; // To be added
+import { useUpdateProfileMutation, useGetMeQuery } from '../api/profileApi';
 
 const steps = ['Datos Personales', 'Identidad', 'Sobre mí', 'Preferencias', 'Fotos'];
 
@@ -15,11 +14,20 @@ export const OnboardingStepper = () => {
     const [activeStep, setActiveStep] = useState(0);
     const [formData, setFormData] = useState<any>({});
     const [updateProfile, { isLoading }] = useUpdateProfileMutation();
-    // const [updatePreferences] = useUpdatePreferencesMutation();
+    const { data: profile } = useGetMeQuery(undefined);
     const navigate = useNavigate();
 
     const handleNext = async () => {
         // Validation logic per step could go here
+
+        if (activeStep === steps.length - 1) {
+            // Final Step (Photos) Validation
+            const photoCount = profile?.user?.photos?.length || 0;
+            if (photoCount < 3) {
+                alert(`Debes subir al menos 3 fotos. Tienes ${photoCount}.`);
+                return;
+            }
+        }
 
         if (activeStep < steps.length - 1) {
             setActiveStep((prev) => prev + 1);
@@ -29,7 +37,6 @@ export const OnboardingStepper = () => {
         // Final Step: Finish
         try {
             // 1. Save Profile Data
-            // We strip preferences fields to avoid errors if strict
             const profilePayload = {
                 name: formData.name,
                 birthdate: formData.birthdate,
@@ -40,22 +47,8 @@ export const OnboardingStepper = () => {
                 locationText: formData.locationText,
                 locationId: formData.locationId,
                 neighborhood: formData.neighborhood,
-                // ... other profile fields
             };
             await updateProfile(profilePayload).unwrap();
-
-            // 2. Save Preferences Data
-            // const preferencesPayload = {
-            //    distanceKm: formData.distanceKm,
-            //    gendersAllowed: formData.gendersAllowed,
-            //    ageMin: formData.ageRange?.[0],
-            //    ageMax: formData.ageRange?.[1]
-            // };
-            // await updatePreferences(preferencesPayload).unwrap();
-
-            // For now, if we haven't implemented updatePreferences in backend, we might skip or put in updateProfile if modified.
-            // Assumption: User asked to analyze DB. Preferences is stored in Preference entity.
-            // I will implement updatePreferences endpoint next.
 
             navigate('/'); // Go to feed
         } catch (err) {

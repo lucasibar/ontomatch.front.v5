@@ -30,6 +30,21 @@ export const profileApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ['User'],
         }),
+        deletePhoto: builder.mutation({
+            query: (photoId: string) => ({
+                url: `/profiles/photos/${photoId}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: ['User'],
+        }),
+        reorderPhotos: builder.mutation({
+            query: (photoIds: string[]) => ({
+                url: '/profiles/photos/reorder',
+                method: 'POST',
+                body: { photoIds },
+            }),
+            invalidatesTags: ['User'],
+        }),
         getSignature: builder.query({
             query: () => '/media/signature',
         }),
@@ -44,6 +59,8 @@ export const {
     useUpdateProfileMutation,
     useAddPhotoMutation,
     useUpdatePreferencesMutation,
+    useDeletePhotoMutation,
+    useReorderPhotosMutation,
     useGetSignatureQuery,
     useLazyGetSignatureQuery,
     useSearchLocationsQuery,
