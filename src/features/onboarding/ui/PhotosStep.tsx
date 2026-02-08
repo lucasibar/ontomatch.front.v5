@@ -34,7 +34,8 @@ export const PhotosStep = () => {
 
             // 3. Register with Backend
             await addPhoto({ url: cloudData.secure_url, publicId: cloudData.public_id }).unwrap();
-            // alert('Photo Uploaded!'); // Optional, maybe just auto-update shows it
+            alert('Photo Uploaded!');
+            // console.log("Profile updated:", profile);
         } catch (err) {
             console.error(err);
             alert('Upload failed');
