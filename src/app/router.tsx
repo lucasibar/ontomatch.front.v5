@@ -1,6 +1,7 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Outlet } from 'react-router-dom';
 import { LoginPage, RegisterPage, OnboardingPage, SwipesPage, MatchesPage, ProfilePage, SettingsPage } from '../pages';
 import { ProtectedRoute } from '../shared/ui/ProtectedRoute';
+import { RequireOnboarding } from '../shared/ui/RequireOnboarding';
 
 export const router = createBrowserRouter([
     {
@@ -11,24 +12,36 @@ export const router = createBrowserRouter([
         path: '/register',
         element: <RegisterPage />,
     },
+    // Protected Routes (require Auth)
     {
-        path: '/',
-        element: <ProtectedRoute><SwipesPage /></ProtectedRoute>,
-    },
-    {
-        path: '/onboarding',
-        element: <ProtectedRoute><OnboardingPage /></ProtectedRoute>,
-    },
-    {
-        path: '/matches',
-        element: <ProtectedRoute><MatchesPage /></ProtectedRoute>,
-    },
-    {
-        path: '/profile',
-        element: <ProtectedRoute><ProfilePage /></ProtectedRoute>,
-    },
-    {
-        path: '/settings',
-        element: <ProtectedRoute><SettingsPage /></ProtectedRoute>,
+        element: <ProtectedRoute><Outlet /></ProtectedRoute>,
+        children: [
+            {
+                path: '/onboarding',
+                element: <OnboardingPage />,
+            },
+            // Routes strictly requiring Onboarding completion
+            {
+                element: <RequireOnboarding />,
+                children: [
+                    {
+                        path: '/',
+                        element: <SwipesPage />,
+                    },
+                    {
+                        path: '/matches',
+                        element: <MatchesPage />,
+                    },
+                    {
+                        path: '/profile',
+                        element: <ProfilePage />,
+                    },
+                    {
+                        path: '/settings',
+                        element: <SettingsPage />,
+                    },
+                ]
+            }
+        ]
     },
 ]);
