@@ -14,7 +14,7 @@ export const PhotosStep = () => {
         setUploading(true);
         try {
             // 1. Get Sig
-            const { data: sigData } = await triggerSignature(null).unwrap() as any;
+            const sigData = await triggerSignature(null).unwrap() as any;
             if (!sigData) throw new Error("No sig");
 
             // 2. Upload to Cloudinary
