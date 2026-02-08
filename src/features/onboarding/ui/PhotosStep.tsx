@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Box, Button, Typography } from '@mui/material';
-import { useLazyGetSignatureQuery, useAddPhotoMutation } from '../api/profileApi';
+import { Box, Button, Typography, Grid, Card, CardMedia } from '@mui/material';
+import { useLazyGetSignatureQuery, useAddPhotoMutation, useGetMeQuery } from '../api/profileApi';
 
 export const PhotosStep = () => {
+    const { data: profile } = useGetMeQuery(undefined);
     const [triggerSignature] = useLazyGetSignatureQuery();
     const [addPhoto] = useAddPhotoMutation();
     const [uploading, setUploading] = useState(false);
@@ -33,7 +34,7 @@ export const PhotosStep = () => {
 
             // 3. Register with Backend
             await addPhoto({ url: cloudData.secure_url, publicId: cloudData.public_id }).unwrap();
-            alert('Photo Uploaded!');
+            // alert('Photo Uploaded!'); // Optional, maybe just auto-update shows it
         } catch (err) {
             console.error(err);
             alert('Upload failed');
@@ -42,6 +43,8 @@ export const PhotosStep = () => {
         }
     };
 
+    const photos = profile?.user?.photos || [];
+
     return (
         <Box>
             <Typography variant="h6" gutterBottom>Add your best photos</Typography>
@@ -49,7 +52,21 @@ export const PhotosStep = () => {
                 {uploading ? 'Uploading...' : 'Upload Photo'}
                 <input type="file" hidden accept="image/*" onChange={handleFileChange} />
             </Button>
-            {/* List photos here if we fetch my profile */}
+
+            <Grid container spacing={2} sx={{ mt: 2 }}>
+                {photos.map((photo: any) => (
+                    <Grid item key={photo.id} xs={6} sm={4} md={3}>
+                        <Card>
+                            <CardMedia
+                                component="img"
+                                height="140"
+                                image={photo.url}
+                                alt="Profile photo"
+                            />
+                        </Card>
+                    </Grid>
+                ))}
+            </Grid>
         </Box>
     );
 };
