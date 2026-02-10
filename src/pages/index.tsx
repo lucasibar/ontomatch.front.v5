@@ -4,5 +4,5 @@ export { SwipesPage } from './SwipesPage';
 export * from './LoginPage';
 export { RegisterPage } from './RegisterPage';
 export { OnboardingPage } from './OnboardingPage';
-export const ProfilePage = () => <div>My Profile</div>;
+export { ProfilePage } from './ProfilePage';
 export const SettingsPage = () => <div>Settings </div>;

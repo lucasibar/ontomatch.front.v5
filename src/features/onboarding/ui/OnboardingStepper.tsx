@@ -37,6 +37,7 @@ export const OnboardingStepper = () => {
         // Final Step: Finish
         try {
             // 1. Save Profile Data
+            // 1. Save Profile Data
             const profilePayload = {
                 name: formData.name,
                 birthdate: formData.birthdate,
@@ -47,6 +48,8 @@ export const OnboardingStepper = () => {
                 locationText: formData.locationText,
                 locationId: formData.locationId,
                 neighborhood: formData.neighborhood,
+                lookingFor: formData.lookingFor,
+                isOnboarded: true,
             };
             await updateProfile(profilePayload).unwrap();
 

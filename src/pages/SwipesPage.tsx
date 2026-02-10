@@ -1,14 +1,16 @@
 import { Container, Typography, Box } from '@mui/material';
-import { SwipeDeck } from '../features/swiping/ui/SwipeDeck';
 
 export const SwipesPage = () => {
     return (
-        <Container maxWidth="sm" sx={{ mt: 4 }}>
-            <Box mb={2} textAlign="center">
-                <Typography variant="h4" fontWeight="bold">Swipes</Typography>
-                <Typography variant="subtitle1" color="text.secondary">Descubrí gente cerca de vos</Typography>
+        <Container maxWidth="sm" sx={{ mt: 4, height: '80vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+            <Box textAlign="center">
+                <Typography variant="h5" fontWeight="bold" gutterBottom>
+                    Espera un ratito
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                    los matchs están tomando impulso 🚀
+                </Typography>
             </Box>
-            <SwipeDeck />
         </Container>
     );
 };

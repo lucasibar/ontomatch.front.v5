@@ -9,12 +9,17 @@ export const LoginForm = () => {
     const [login, { isLoading, error }] = useLoginMutation();
     const navigate = useNavigate();
 
+    const isEmailError = (error as any)?.status === 404;
+    const isPasswordError = (error as any)?.status === 401;
+    const genericError = error && !isEmailError && !isPasswordError;
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             await login({ email, password }).unwrap();
             navigate('/');
         } catch (err) {
+            console.log('LOGIN ERROR FULL:', err);
             console.error('Failed to login', err);
         }
     };
@@ -29,7 +34,16 @@ export const LoginForm = () => {
             </Typography>
 
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-                {error && <Alert severity="error" sx={{ mb: 2 }}>Login failed</Alert>}
+                {isEmailError && (
+                    <Alert severity="warning" sx={{ mb: 2 }}>
+                        El email no está registrado. <Link to="/register">Crear cuenta</Link>
+                    </Alert>
+                )}
+                {genericError && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {(error as any)?.data?.message || 'Error de conexión'}
+                    </Alert>
+                )}
 
                 <TextField
                     label="Email"
@@ -37,6 +51,7 @@ export const LoginForm = () => {
                     margin="normal"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    error={isEmailError}
                 />
                 <TextField
                     label="Password"
@@ -45,6 +60,8 @@ export const LoginForm = () => {
                     margin="normal"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    error={isPasswordError}
+                    helperText={isPasswordError ? 'Contraseña incorrecta' : ''}
                 />
 
                 <Button

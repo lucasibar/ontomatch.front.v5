@@ -15,8 +15,17 @@ export const RequireOnboarding = () => {
         );
     }
 
-    // If user is NOT onboarded, redirect to /onboarding
-    if (!user?.isOnboarded) {
+    // If user is NOT onboarded OR missing mandatory data, redirect to /onboarding
+    // We check for: Flag, Name, Birthdate, Gender, LookingFor, and at least 3 Photos.
+    const photoCount = user?.user?.photos?.length || 0;
+    const isProfileComplete = user?.isOnboarded &&
+        user?.name &&
+        user?.birthdate &&
+        user?.gender &&
+        (user?.looking_for || user?.lookingFor) && // Handle snake/camel case depending on API transform 
+        photoCount >= 3;
+
+    if (!isProfileComplete) {
         return <Navigate to="/onboarding" state={{ from: location }} replace />;
     }
 

@@ -51,6 +51,11 @@ export const PhotosStep = () => {
     };
 
     const handleDelete = async (photoId: string) => {
+        if (sortedPhotos.length <= 3) {
+            alert('Debes mantener al menos 3 fotos.');
+            return;
+        }
+
         if (confirm('Are you sure you want to delete this photo?')) {
             await deletePhoto(photoId).unwrap();
         }

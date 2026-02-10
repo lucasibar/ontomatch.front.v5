@@ -1,4 +1,4 @@
-import { TextField, Box, Typography, Autocomplete } from '@mui/material';
+import { TextField, Box, Typography, Autocomplete, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useLazySearchLocationsQuery } from '../api/profileApi';
 
@@ -68,6 +68,20 @@ export const BasicInfoStep = ({ data, onChange }: { data: any, onChange: (d: any
                 onChange={(e) => onChange({ ...data, neighborhood: e.target.value })}
                 fullWidth
             />
+
+            <FormControl fullWidth>
+                <InputLabel>¿Qué buscas?</InputLabel>
+                <Select
+                    value={data.lookingFor || ''}
+                    label="¿Qué buscas?"
+                    onChange={(e) => onChange({ ...data, lookingFor: e.target.value })}
+                >
+                    <MenuItem value="sessions_1_on_1">Sesiones 1 a 1</MenuItem>
+                    <MenuItem value="networking">Networking profesional</MenuItem>
+                    <MenuItem value="relationship">Pareja</MenuItem>
+                    <MenuItem value="casual">Algo casual</MenuItem>
+                </Select>
+            </FormControl>
         </Box>
     );
 };

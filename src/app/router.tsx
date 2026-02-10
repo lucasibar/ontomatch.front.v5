@@ -1,16 +1,18 @@
 import { createBrowserRouter, Outlet } from 'react-router-dom';
 import { LoginPage, RegisterPage, OnboardingPage, SwipesPage, MatchesPage, ProfilePage, SettingsPage } from '../pages';
+import { MainLayout } from '../shared/layouts/MainLayout';
 import { ProtectedRoute } from '../shared/ui/ProtectedRoute';
 import { RequireOnboarding } from '../shared/ui/RequireOnboarding';
+import { PublicRoute } from '../shared/ui/PublicRoute';
 
 export const router = createBrowserRouter([
     {
         path: '/login',
-        element: <LoginPage />,
+        element: <PublicRoute><LoginPage /></PublicRoute>,
     },
     {
         path: '/register',
-        element: <RegisterPage />,
+        element: <PublicRoute><RegisterPage /></PublicRoute>,
     },
     // Protected Routes (require Auth)
     {
@@ -25,21 +27,30 @@ export const router = createBrowserRouter([
                 element: <RequireOnboarding />,
                 children: [
                     {
-                        path: '/',
-                        element: <SwipesPage />,
-                    },
-                    {
-                        path: '/matches',
-                        element: <MatchesPage />,
-                    },
-                    {
-                        path: '/profile',
-                        element: <ProfilePage />,
-                    },
-                    {
-                        path: '/settings',
-                        element: <SettingsPage />,
-                    },
+                        element: <MainLayout />,
+                        children: [
+                            {
+                                index: true,
+                                element: <SwipesPage />,
+                            },
+                            {
+                                path: '/swipes',
+                                element: <SwipesPage />,
+                            },
+                            {
+                                path: '/matches',
+                                element: <MatchesPage />,
+                            },
+                            {
+                                path: '/profile',
+                                element: <ProfilePage />,
+                            },
+                            {
+                                path: '/settings',
+                                element: <SettingsPage />,
+                            },
+                        ]
+                    }
                 ]
             }
         ]
