@@ -1,4 +1,4 @@
-import { Box, Typography, Container, TextField, Button, MenuItem, FormControl, InputLabel, Select, Snackbar, Alert } from '@mui/material';
+import { Box, Typography, Container, TextField, Button, MenuItem, FormControl, InputLabel, Select, Snackbar, Alert, Slider } from '@mui/material';
 import { useGetMeQuery, useUpdateProfileMutation, useGetPreferencesQuery, useUpdatePreferencesMutation } from '../features/onboarding/api/profileApi';
 import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
