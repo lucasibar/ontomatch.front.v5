@@ -55,11 +55,15 @@ export const BasicInfoStep = ({ data, onChange }: { data: any, onChange: (d: any
                 }}
                 renderInput={(params) => <TextField {...params} label="Localidad / Ciudad" fullWidth />}
                 value={data.locationText ? { locality: data.locationText, province: '' } : null}
-                // Note: value prop might be tricky if object doesn't match option reference. 
-                // For MVP, if they select, it sets text. If coming back, it shows text if we map it correctly.
-                // Simplified: just rely on input text or don't control value fully if complex.
-                // Let's rely on controlled input via freeSolo or just trust the selection.
                 isOptionEqualToValue={(option, value) => option.locality === value.locality}
+                renderOption={(props, option) => {
+                    const { key, ...optionProps } = props;
+                    return (
+                        <li key={option.id || key} {...optionProps}>
+                            {option.locality}, {option.province}
+                        </li>
+                    );
+                }}
             />
 
             <TextField
