@@ -4,7 +4,11 @@ import { Delete, ArrowBack, ArrowForward } from '@mui/icons-material';
 import { useLazyGetSignatureQuery, useAddPhotoMutation, useGetMeQuery, useDeletePhotoMutation, useReorderPhotosMutation } from '../api/profileApi';
 
 export const PhotosStep = () => {
-    const { data: profile } = useGetMeQuery(undefined);
+    const { data: profile, isLoading } = useGetMeQuery(undefined);
+
+    if (isLoading) {
+        return <Typography>Loading profile...</Typography>;
+    }
     const [triggerSignature] = useLazyGetSignatureQuery();
     const [addPhoto] = useAddPhotoMutation();
     const [deletePhoto] = useDeletePhotoMutation();

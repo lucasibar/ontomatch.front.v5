@@ -4,9 +4,8 @@ import { useGetMeQuery } from '../../features/onboarding/api/profileApi';
 import { Box, CircularProgress } from '@mui/material';
 
 export const RequireOnboarding = () => {
-    const { data: user, isLoading, error } = useGetMeQuery(undefined);
+    const { data: user, isLoading } = useGetMeQuery(undefined);
     const location = useLocation();
-    console.log('RequireOnboarding State:', { isLoading, user, error });
 
     if (isLoading) {
         return (
