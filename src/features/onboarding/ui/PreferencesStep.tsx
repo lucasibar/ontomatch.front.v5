@@ -29,6 +29,26 @@ export const PreferencesStep = ({ data, onChange }: { data: any, onChange: (d: a
                 </Select>
             </FormControl>
 
+            <FormControl fullWidth>
+                <InputLabel>Interés en (Género)</InputLabel>
+                <Select
+                    multiple
+                    value={data.gendersAllowed || []}
+                    label="Interés en (Género)"
+                    onChange={(e) => {
+                        const val = typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value;
+                        onChange({ ...data, gendersAllowed: val });
+                    }}
+                    renderValue={(selected) => (selected as string[]).map(v =>
+                        v === 'male' ? 'Hombres' : v === 'female' ? 'Mujeres' : v === 'non_binary' ? 'No Binarios' : v
+                    ).join(', ')}
+                >
+                    <MenuItem value="male">Hombres</MenuItem>
+                    <MenuItem value="female">Mujeres</MenuItem>
+                    <MenuItem value="non_binary">No Binarios</MenuItem>
+                </Select>
+            </FormControl>
+
             <Box>
                 <Typography gutterBottom>Distancia Máxima: {data.distanceKm || 50} km</Typography>
                 <Slider

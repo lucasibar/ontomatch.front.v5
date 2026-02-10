@@ -6,7 +6,7 @@ import { IdentityStep } from './IdentityStep';
 import { BioStep } from './BioStep';
 import { PreferencesStep } from './PreferencesStep';
 import { PhotosStep } from './PhotosStep';
-import { useUpdateProfileMutation, useGetMeQuery } from '../api/profileApi';
+import { useUpdateProfileMutation, useGetMeQuery, useUpdatePreferencesMutation } from '../api/profileApi';
 
 const steps = ['Datos Personales', 'Identidad', 'Sobre mí', 'Preferencias', 'Fotos'];
 
@@ -14,6 +14,7 @@ export const OnboardingStepper = () => {
     const [activeStep, setActiveStep] = useState(0);
     const [formData, setFormData] = useState<any>({});
     const [updateProfile, { isLoading }] = useUpdateProfileMutation();
+    const [updatePreferences] = useUpdatePreferencesMutation();
     const { data: profile } = useGetMeQuery(undefined);
     const navigate = useNavigate();
 
@@ -52,6 +53,16 @@ export const OnboardingStepper = () => {
                 isOnboarded: true,
             };
             await updateProfile(profilePayload).unwrap();
+
+            // 2. Save Preferences
+            if (formData.distanceKm || formData.ageRange || formData.gendersAllowed) {
+                await updatePreferences({
+                    distanceKm: formData.distanceKm,
+                    ageMin: formData.ageRange?.[0],
+                    ageMax: formData.ageRange?.[1],
+                    gendersAllowed: formData.gendersAllowed
+                }).unwrap();
+            }
 
             navigate('/'); // Go to feed
         } catch (err) {

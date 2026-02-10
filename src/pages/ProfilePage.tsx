@@ -12,7 +12,7 @@ export const ProfilePage = () => {
     const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
     const [updatePreferences] = useUpdatePreferencesMutation();
     const [formData, setFormData] = useState<any>({});
-    const [prefData, setPrefData] = useState<any>({ distanceKm: 50, ageRange: [18, 99] });
+    const [prefData, setPrefData] = useState<any>({ distanceKm: 50, ageRange: [18, 99], gendersAllowed: [] });
     const [toast, setToast] = useState<{ open: boolean, message: string, severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
     useEffect(() => {
@@ -32,7 +32,8 @@ export const ProfilePage = () => {
         if (preferences) {
             setPrefData({
                 distanceKm: preferences.distanceKm || 50,
-                ageRange: [preferences.ageMin || 18, preferences.ageMax || 99]
+                ageRange: [preferences.ageMin || 18, preferences.ageMax || 99],
+                gendersAllowed: preferences.gendersAllowed || []
             });
         }
     }, [profile, preferences]);
@@ -57,7 +58,8 @@ export const ProfilePage = () => {
             await updatePreferences({
                 distanceKm: prefData.distanceKm,
                 ageMin: prefData.ageRange[0],
-                ageMax: prefData.ageRange[1]
+                ageMax: prefData.ageRange[1],
+                gendersAllowed: prefData.gendersAllowed
             }).unwrap();
 
             setToast({ open: true, message: 'Perfil y preferencias actualizados', severity: 'success' });
@@ -152,6 +154,26 @@ export const ProfilePage = () => {
                 />
 
                 <Typography variant="h6" mt={2}>Preferencias de Discovery</Typography>
+
+                <FormControl fullWidth>
+                    <InputLabel>Interés en (Género)</InputLabel>
+                    <Select
+                        multiple
+                        value={prefData.gendersAllowed || []}
+                        label="Interés en (Género)"
+                        onChange={(e) => {
+                            const val = typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value;
+                            setPrefData({ ...prefData, gendersAllowed: val });
+                        }}
+                        renderValue={(selected) => (selected as string[]).map(v =>
+                            v === 'male' ? 'Hombres' : v === 'female' ? 'Mujeres' : v === 'non_binary' ? 'No Binarios' : v
+                        ).join(', ')}
+                    >
+                        <MenuItem value="male">Hombres</MenuItem>
+                        <MenuItem value="female">Mujeres</MenuItem>
+                        <MenuItem value="non_binary">No Binarios</MenuItem>
+                    </Select>
+                </FormControl>
 
                 <Box>
                     <Typography gutterBottom>Distancia Máxima: {prefData.distanceKm} km</Typography>
