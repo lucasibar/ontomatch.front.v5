@@ -1,5 +1,5 @@
 import { Box, Typography, Container, TextField, Button, MenuItem, FormControl, InputLabel, Select, Snackbar, Alert } from '@mui/material';
-import { useGetMeQuery, useUpdateProfileMutation } from '../features/onboarding/api/profileApi';
+import { useGetMeQuery, useUpdateProfileMutation, useGetPreferencesQuery, useUpdatePreferencesMutation } from '../features/onboarding/api/profileApi';
 import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { logout } from '../features/auth/model/authSlice';
@@ -8,8 +8,11 @@ import { PhotosStep } from '../features/onboarding/ui/PhotosStep';
 export const ProfilePage = () => {
     const dispatch = useDispatch();
     const { data: profile, isLoading } = useGetMeQuery(undefined);
+    const { data: preferences } = useGetPreferencesQuery(undefined);
     const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
+    const [updatePreferences] = useUpdatePreferencesMutation();
     const [formData, setFormData] = useState<any>({});
+    const [prefData, setPrefData] = useState<any>({ distanceKm: 50, ageRange: [18, 99] });
     const [toast, setToast] = useState<{ open: boolean, message: string, severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
     useEffect(() => {
@@ -26,7 +29,13 @@ export const ProfilePage = () => {
                 // Add lookingFor if not already there
             });
         }
-    }, [profile]);
+        if (preferences) {
+            setPrefData({
+                distanceKm: preferences.distanceKm || 50,
+                ageRange: [preferences.ageMin || 18, preferences.ageMax || 99]
+            });
+        }
+    }, [profile, preferences]);
 
     const handleChange = (field: string, value: any) => {
         setFormData((prev: any) => ({ ...prev, [field]: value }));
@@ -44,7 +53,14 @@ export const ProfilePage = () => {
 
         try {
             await updateProfile(formData).unwrap();
-            setToast({ open: true, message: 'Perfil actualizado', severity: 'success' });
+
+            await updatePreferences({
+                distanceKm: prefData.distanceKm,
+                ageMin: prefData.ageRange[0],
+                ageMax: prefData.ageRange[1]
+            }).unwrap();
+
+            setToast({ open: true, message: 'Perfil y preferencias actualizados', severity: 'success' });
         } catch (error) {
             setToast({ open: true, message: 'Error al actualizar', severity: 'error' });
         }
@@ -134,6 +150,29 @@ export const ProfilePage = () => {
                     onChange={(e) => handleChange('neighborhood', e.target.value)}
                     fullWidth
                 />
+
+                <Typography variant="h6" mt={2}>Preferencias de Discovery</Typography>
+
+                <Box>
+                    <Typography gutterBottom>Distancia Máxima: {prefData.distanceKm} km</Typography>
+                    <Slider
+                        value={prefData.distanceKm}
+                        onChange={(_, val) => setPrefData({ ...prefData, distanceKm: val })}
+                        valueLabelDisplay="auto"
+                        min={1} max={100}
+                    />
+                </Box>
+
+                <Box>
+                    <Typography gutterBottom>Rango de Edad: {prefData.ageRange.join(' - ')} años</Typography>
+                    <Slider
+                        value={prefData.ageRange}
+                        onChange={(_, val) => setPrefData({ ...prefData, ageRange: val })}
+                        valueLabelDisplay="auto"
+                        min={18} max={99}
+                        disableSwap
+                    />
+                </Box>
 
                 <Button
                     variant="contained"

@@ -22,6 +22,10 @@ export const profileApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ['User'],
         }),
+        getPreferences: builder.query({
+            query: () => '/preferences/me',
+            providesTags: ['User'],
+        }),
         updatePreferences: builder.mutation({
             query: (body: any) => ({
                 url: '/preferences/me',
@@ -56,6 +60,7 @@ export const profileApi = baseApi.injectEndpoints({
 
 export const {
     useGetMeQuery,
+    useGetPreferencesQuery,
     useUpdateProfileMutation,
     useAddPhotoMutation,
     useUpdatePreferencesMutation,
