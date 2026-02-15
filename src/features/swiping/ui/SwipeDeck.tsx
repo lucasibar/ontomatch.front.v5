@@ -13,6 +13,7 @@ const SwipeDeck = () => {
     const [postSwipe] = usePostSwipeMutation();
     const [finished, setFinished] = useState(false);
 
+
     useEffect(() => {
         if (feed) {
             if (profiles.length === 0 && feed.length > 0) {
@@ -50,13 +51,18 @@ const SwipeDeck = () => {
     const currentProfile = profiles[currentIndex];
     const nextProfile = profiles[currentIndex + 1];
 
-    if (isLoading && profiles.length === 0) {
+    // Fix flicker: If feed is loaded but profiles state not yet set, keep showing loader
+    const isInitializing = feed && feed.length > 0 && profiles.length === 0;
+
+    if ((isLoading || isInitializing) && profiles.length === 0) {
         return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: '#111', color: 'white' }}>
             <CircularProgress color="inherit" />
         </Box>;
     }
 
-    if (currentIndex >= profiles.length || finished) {
+    const hasReachedEnd = profiles.length > 0 && currentIndex >= profiles.length;
+
+    if (hasReachedEnd || finished) {
         return (
             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', gap: 2, bgcolor: '#111', color: 'white' }}>
                 <Typography variant="h5">No more profiles nearby.</Typography>

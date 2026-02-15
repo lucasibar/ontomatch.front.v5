@@ -8,5 +8,6 @@ export interface Profile {
     photos?: { url: string }[];
     gender?: string;
     orientation?: string;
-    // ...
+    neighborhood?: string;
+    isLiker?: boolean; // Added for debugging/potential UI use
 }

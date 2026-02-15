@@ -23,7 +23,8 @@ export const RequireOnboarding = () => {
         user?.birthdate &&
         user?.gender &&
         (user?.looking_for || user?.lookingFor) && // Handle snake/camel case depending on API transform 
-        photoCount >= 3;
+        photoCount >= 0;
+
 
     if (!isProfileComplete) {
         return <Navigate to="/onboarding" state={{ from: location }} replace />;
