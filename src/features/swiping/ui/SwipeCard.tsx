@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
-import { motion, type PanInfo, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, type PanInfo, useMotionValue, useTransform } from 'framer-motion';
 import { Box, Typography, IconButton, Paper } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import InfoIcon from '@mui/icons-material/Info';
 import { type Profile } from '../types';
 
@@ -21,7 +22,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active 
 
     const photos = profile.photos && profile.photos.length > 0
         ? profile.photos
-        : [{ url: 'https://via.placeholder.com/400x600?text=No+Image' }];
+        : [{ url: 'https://placehold.co/400x600?text=No+Image' }];
 
     const handleDragEnd = (_: any, info: PanInfo) => {
         if (Math.abs(info.offset.x) > 100) {
@@ -100,60 +101,76 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active 
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)',
                     p: 3,
-                    pb: 10,
+                    pb: 4,
                     zIndex: 2,
-                    pointerEvents: 'none'
+                    pointerEvents: 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end'
                 }}>
-                    <Typography variant="h3" color="white" fontWeight="bold">
+                    <Typography variant="h3" color="white" fontWeight="bold" sx={{ textShadow: '0px 2px 4px rgba(0,0,0,0.5)' }}>
                         {profile.name}, {age}
                     </Typography>
-                    <Typography variant="body1" color="white">
-                        {profile.distanceKm ? `${Math.round(profile.distanceKm)} km away` : 'Nearby'}
-                    </Typography>
+
+                    {/* Subtitle: Neighborhood with Google Maps Icon */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                        <LocationOnIcon sx={{ color: '#ff4b4b', mr: 0.5, fontSize: 20, filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.5))' }} />
+                        <Typography variant="h6" color="white" sx={{ textShadow: '0px 1px 2px rgba(0,0,0,0.5)' }}>
+                            {profile.neighborhood || (profile.distanceKm ? `${Math.round(profile.distanceKm)} km` : 'Nearby')}
+                        </Typography>
+                    </Box>
+
+                    {/* Bio Helper */}
                     <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, opacity: 0.8 }}>
                         <InfoIcon sx={{ color: 'white', mr: 0.5, fontSize: 16 }} />
-                        <Typography variant="caption" color="white">Swipe down for info</Typography>
+                        <Typography variant="caption" color="white">Swipe down for bio</Typography>
                     </Box>
                 </Box>
 
-                {/* Buttons */}
+                {/* Floating Buttons */}
                 {active && (
                     <Box sx={{
                         position: 'absolute',
-                        bottom: 20,
-                        left: 0,
-                        right: 0,
+                        bottom: 110, // Higher up, above the text roughly
+                        right: 20,
                         display: 'flex',
-                        justifyContent: 'center',
-                        gap: 4,
+                        // User said "sobre la imagen van a estar los dos botones".
+                        // Let's put them in a Row at the bottom right or center.
+                        // "Standard" tinder UI is row at bottom.
+                        // Let's keep them as a Row, maybe slightly higher than before to clear the text.
+                        flexDirection: 'row',
+                        justifyContent: 'flex-end',
+                        width: 'auto',
+                        left: 'auto',
+                        gap: 2,
                         zIndex: 10
                     }}>
                         <IconButton
                             onClick={() => onSwipe('left')}
                             sx={{
                                 bgcolor: 'white',
-                                width: 64,
-                                height: 64,
+                                width: 56,
+                                height: 56,
                                 boxShadow: 3,
-                                '&:hover': { bgcolor: '#f5f5f5' }
+                                '&:hover': { bgcolor: '#ffebee' }
                             }}
                         >
-                            <CloseIcon sx={{ fontSize: 32, color: '#ff4b4b' }} />
+                            <CloseIcon sx={{ fontSize: 28, color: '#ff4b4b' }} />
                         </IconButton>
 
                         <IconButton
                             onClick={() => onSwipe('right')}
                             sx={{
                                 bgcolor: 'white',
-                                width: 64,
-                                height: 64,
+                                width: 56,
+                                height: 56,
                                 boxShadow: 3,
-                                '&:hover': { bgcolor: '#f5f5f5' }
+                                '&:hover': { bgcolor: '#e8f5e9' }
                             }}
                         >
-                            <FavoriteIcon sx={{ fontSize: 32, color: '#4caf50' }} />
+                            <FavoriteIcon sx={{ fontSize: 28, color: '#4caf50' }} />
                         </IconButton>
                     </Box>
                 )}
