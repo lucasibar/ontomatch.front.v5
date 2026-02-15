@@ -1,6 +1,6 @@
 
 import { baseApi } from '../../../shared/api/baseApi';
-import { Profile } from '../types';
+import { type Profile } from '../types';
 
 export const swipesApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
@@ -10,7 +10,7 @@ export const swipesApi = baseApi.injectEndpoints({
                 params: params || {},
             }),
             providesTags: ['Profile'],
-            // Transform response if necessary (e.g. backend returns raw array)
+            transformResponse: (response: { data: Profile[], meta: any }) => response.data,
         }),
         postSwipe: builder.mutation<{ matched: boolean, matchId?: string }, { targetUserId: string, action: 'LIKE' | 'PASS' }>({
             query: ({ targetUserId, action }) => ({
