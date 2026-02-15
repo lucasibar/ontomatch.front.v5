@@ -20,9 +20,8 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active 
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-15, 15]);
 
-    const photos = profile.photos && profile.photos.length > 0
-        ? profile.photos
-        : [{ url: 'https://placehold.co/400x600?text=No+Image' }];
+    const hasPhotos = profile.photos && profile.photos.length > 0;
+    const photos = hasPhotos ? profile.photos! : [{ url: 'FALLBACK' }];
 
     const handleDragEnd = (_: any, info: PanInfo) => {
         if (Math.abs(info.offset.x) > 100) {
@@ -63,37 +62,58 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active 
                     bgcolor: 'black'
                 }}
             >
-                {/* Image */}
-                <Box
-                    component="img"
-                    src={photos[photoIndex].url}
-                    alt={profile.name}
-                    sx={{
+                {/* Image or Fallback */}
+                {photos[photoIndex].url === 'FALLBACK' ? (
+                    <Box sx={{
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover',
-                        pointerEvents: 'none'
-                    }}
-                />
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'linear-gradient(135deg, #444 0%, #222 100%)',
+                    }}>
+                        <Typography variant="h1" sx={{ color: 'rgba(255,255,255,0.1)', fontWeight: 900, fontSize: '10rem' }}>
+                            {profile.name.charAt(0).toUpperCase()}
+                        </Typography>
+                    </Box>
+                ) : (
+                    <Box
+                        component="img"
+                        src={photos[photoIndex].url}
+                        alt={profile.name}
+                        sx={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            pointerEvents: 'none'
+                        }}
+                    />
+                )}
 
                 {/* Tap areas */}
-                <Box onClick={() => setPhotoIndex(prev => Math.max(0, prev - 1))} sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '50%', zIndex: 1 }} />
-                <Box onClick={() => setPhotoIndex(prev => Math.min(photos.length - 1, prev + 1))} sx={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '50%', zIndex: 1 }} />
+                {hasPhotos && (
+                    <>
+                        <Box onClick={() => setPhotoIndex(prev => Math.max(0, prev - 1))} sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '50%', zIndex: 1 }} />
+                        <Box onClick={() => setPhotoIndex(prev => Math.min(photos.length - 1, prev + 1))} sx={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '50%', zIndex: 1 }} />
+                    </>
+                )}
 
                 {/* Indicators */}
-                <Box sx={{ position: 'absolute', top: 10, left: 0, right: 0, display: 'flex', gap: 1, px: 2, zIndex: 2 }}>
-                    {photos.map((_, i) => (
-                        <Box
-                            key={i}
-                            sx={{
-                                flex: 1,
-                                height: 4,
-                                bgcolor: i === photoIndex ? 'white' : 'rgba(255,255,255,0.5)',
-                                borderRadius: 2
-                            }}
-                        />
-                    ))}
-                </Box>
+                {hasPhotos && (
+                    <Box sx={{ position: 'absolute', top: 10, left: 0, right: 0, display: 'flex', gap: 1, px: 2, zIndex: 2 }}>
+                        {photos.map((_, i) => (
+                            <Box
+                                key={i}
+                                sx={{
+                                    flex: 1,
+                                    height: 4,
+                                    bgcolor: i === photoIndex ? 'white' : 'rgba(255,255,255,0.5)',
+                                    borderRadius: 2
+                                }}
+                            />
+                        ))}
+                    </Box>
+                )}
 
                 {/* Info Overlay */}
                 <Box sx={{
