@@ -41,7 +41,7 @@ export const OnboardingStepper = () => {
             // 1. Save Profile Data
             const profilePayload = {
                 name: formData.name,
-                birthdate: formData.birthdate,
+                birthdate: new Date(formData.birthdate).toISOString(),
                 height: formData.height,
                 gender: formData.gender,
                 genderCustom: formData.genderCustom,
@@ -55,14 +55,14 @@ export const OnboardingStepper = () => {
             await updateProfile(profilePayload).unwrap();
 
             // 2. Save Preferences
-            if (formData.distanceKm || formData.ageRange || formData.gendersAllowed) {
-                await updatePreferences({
-                    distanceKm: formData.distanceKm,
-                    ageMin: formData.ageRange?.[0],
-                    ageMax: formData.ageRange?.[1],
-                    gendersAllowed: formData.gendersAllowed
-                }).unwrap();
-            }
+            // 2. Save Preferences (Force save with defaults if missing)
+            console.log('Onboarding: Saving Preferences...');
+            await updatePreferences({
+                distanceKm: formData.distanceKm || 50,
+                ageMin: formData.ageRange?.[0] || 18,
+                ageMax: formData.ageRange?.[1] || 99,
+                gendersAllowed: formData.gendersAllowed || []
+            }).unwrap();
 
             navigate('/'); // Go to feed
         } catch (err) {

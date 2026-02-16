@@ -14,14 +14,18 @@ export const ConversationList = ({ onSelect }: { onSelect: (id: string) => void 
                     <ListItem alignItems="flex-start" disablePadding>
                         <ListItemButton onClick={() => onSelect(conv.id)}>
                             <ListItemAvatar>
-                                <Avatar alt="User" src="/static/images/avatar/1.jpg" />
+                                <Avatar alt={conv.partner.name} src={conv.partner.photoUrl || undefined} />
                             </ListItemAvatar>
                             <ListItemText
-                                primary="Match Name" // We need to resolve other user name based on match/profile
+                                primary={conv.partner.name}
                                 secondary={
-                                    <Typography variant="body2" color="text.primary">
-                                        {/* Last message preview if available */}
-                                        Start chatting...
+                                    <Typography
+                                        sx={{ display: 'inline' }}
+                                        component="span"
+                                        variant="body2"
+                                        color="text.primary"
+                                    >
+                                        {conv.lastMessage ? conv.lastMessage.body : 'Start chatting...'}
                                     </Typography>
                                 }
                             />

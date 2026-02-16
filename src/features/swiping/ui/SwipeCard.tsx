@@ -1,11 +1,8 @@
 
 import React, { useState } from 'react';
 import { motion, type PanInfo, useMotionValue, useTransform } from 'framer-motion';
-import { Box, Typography, IconButton, Paper } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import FavoriteIcon from '@mui/icons-material/Favorite';
+import { Box, Typography, Paper } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import InfoIcon from '@mui/icons-material/Info';
 import { type Profile } from '../types';
 
 interface SwipeCardProps {
@@ -18,21 +15,37 @@ interface SwipeCardProps {
 const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active }) => {
     const [photoIndex, setPhotoIndex] = useState(0);
     const x = useMotionValue(0);
-    const rotate = useTransform(x, [-200, 200], [-15, 15]);
+    const rotate = useTransform(x, [-200, 200], [-10, 10]); // Reduced rotation for cleaner feel
 
     const hasPhotos = profile.photos && profile.photos.length > 0;
     const photos = hasPhotos ? profile.photos! : [{ url: 'FALLBACK' }];
 
     const handleDragEnd = (_: any, info: PanInfo) => {
-        if (Math.abs(info.offset.x) > 100) {
-            const direction = info.offset.x > 0 ? 'right' : 'left';
-            onSwipe(direction);
-        } else if (info.offset.y > 100) {
-            onInfo(); // Swipe down for info
+        const threshold = 50;
+        if (info.offset.x > threshold) {
+            // Drag Right -> Previous Photo
+            setPhotoIndex(prev => Math.max(0, prev - 1));
+        } else if (info.offset.x < -threshold) {
+            // Drag Left -> Next Photo
+            setPhotoIndex(prev => Math.min(photos.length - 1, prev + 1));
         }
+        // Always snap back to center, this is navigation not swipe
     };
 
+
     const age = new Date().getFullYear() - new Date(profile.birthdate).getFullYear();
+
+    // Helper to force stability on "random" URLs (e.g. legacy seed data)
+    const getStableUrl = (url: string, index: number) => {
+        if (!url) return '';
+        if (url === 'FALLBACK') return url;
+        // If it's already a specific ID, it's fine, but adding a param doesn't hurt.
+        // We use the profile ID and photo index as a seed.
+        const separator = url.includes('?') ? '&' : '?';
+        return `${url}${separator}stable_lock=${profile.user_id}-${index}`;
+    };
+
+    const currentPhotoUrl = getStableUrl(photos[photoIndex].url, photoIndex);
 
     return (
         <motion.div
@@ -47,9 +60,9 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active 
             }}
             drag={active ? "x" : false}
             dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-            dragElastic={0.7}
+            dragElastic={0.2}
             onDragEnd={handleDragEnd}
-            whileTap={{ scale: 1.02 }}
+            whileTap={{ cursor: 'grabbing' }}
         >
             <Paper
                 elevation={4}
@@ -57,7 +70,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active 
                     height: '100%',
                     width: '100%',
                     overflow: 'hidden',
-                    borderRadius: 4,
+                    borderRadius: 0,
                     position: 'relative',
                     bgcolor: 'black'
                 }}
@@ -79,121 +92,97 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active 
                 ) : (
                     <Box
                         component="img"
-                        src={photos[photoIndex].url}
+                        src={currentPhotoUrl}
                         alt={profile.name}
                         sx={{
                             width: '100%',
                             height: '100%',
                             objectFit: 'cover',
-                            pointerEvents: 'none'
+                            pointerEvents: 'none',
+                            display: 'block'
                         }}
                     />
                 )}
 
-                {/* Tap areas */}
+                {/* Tap areas for Navigation (Accessibility / Ease of use) */}
                 {hasPhotos && (
                     <>
-                        <Box onClick={() => setPhotoIndex(prev => Math.max(0, prev - 1))} sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '50%', zIndex: 1 }} />
-                        <Box onClick={() => setPhotoIndex(prev => Math.min(photos.length - 1, prev + 1))} sx={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '50%', zIndex: 1 }} />
+                        <Box onClick={() => setPhotoIndex(prev => Math.max(0, prev - 1))} sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '30%', zIndex: 1 }} />
+                        <Box onClick={() => setPhotoIndex(prev => Math.min(photos.length - 1, prev + 1))} sx={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '30%', zIndex: 1 }} />
                     </>
                 )}
 
-                {/* Indicators */}
+                {/* Photo Indicators - Top Edge */}
                 {hasPhotos && (
-                    <Box sx={{ position: 'absolute', top: 10, left: 0, right: 0, display: 'flex', gap: 1, px: 2, zIndex: 2 }}>
+                    <Box sx={{ position: 'absolute', top: 8, left: 0, right: 0, display: 'flex', gap: 0.5, px: 1.5, zIndex: 20 }}>
                         {photos.map((_, i) => (
                             <Box
                                 key={i}
                                 sx={{
                                     flex: 1,
-                                    height: 4,
-                                    bgcolor: i === photoIndex ? 'white' : 'rgba(255,255,255,0.5)',
-                                    borderRadius: 2
+                                    height: 3,
+                                    bgcolor: i === photoIndex ? 'white' : 'rgba(255,255,255,0.3)',
+                                    borderRadius: 1,
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.5)'
                                 }}
                             />
                         ))}
                     </Box>
                 )}
 
-                {/* Info Overlay */}
+                {/* INFO OVERLAY: TOP LEFT */}
                 <Box sx={{
                     position: 'absolute',
-                    bottom: 0,
+                    top: 0,
                     left: 0,
                     right: 0,
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)',
-                    p: 3,
-                    pb: 4,
-                    zIndex: 2,
+                    pt: 6, // Space below bars
+                    px: 3,
+                    pb: 12, // Gradient fade out
+                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
+                    zIndex: 10,
                     pointerEvents: 'none',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'flex-end'
+                    alignItems: 'flex-start'
                 }}>
-                    <Typography variant="h3" color="white" fontWeight="bold" sx={{ textShadow: '0px 2px 4px rgba(0,0,0,0.5)' }}>
+                    <Typography variant="h4" color="white" fontWeight="bold" sx={{ textShadow: '0px 2px 4px rgba(0,0,0,0.8)', letterSpacing: 0.5 }}>
                         {profile.name}, {age}
                     </Typography>
 
-                    {/* Subtitle: Neighborhood with Google Maps Icon */}
                     <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                        <LocationOnIcon sx={{ color: '#ff4b4b', mr: 0.5, fontSize: 20, filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.5))' }} />
-                        <Typography variant="h6" color="white" sx={{ textShadow: '0px 1px 2px rgba(0,0,0,0.5)' }}>
-                            {profile.neighborhood || (profile.distanceKm ? `${Math.round(profile.distanceKm)} km` : 'Nearby')}
+                        <LocationOnIcon sx={{ color: '#ff4b4b', mr: 0.5, fontSize: 18, filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.8))' }} />
+                        <Typography variant="body1" color="white" sx={{ textShadow: '0px 1px 2px rgba(0,0,0,0.8)', fontWeight: 500 }}>
+                            {profile.distanceKm ? `${Math.round(profile.distanceKm)} km away` : 'Nearby'}
                         </Typography>
                     </Box>
 
-                    {/* Bio Helper */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, opacity: 0.8 }}>
-                        <InfoIcon sx={{ color: 'white', mr: 0.5, fontSize: 16 }} />
-                        <Typography variant="caption" color="white">Swipe down for bio</Typography>
-                    </Box>
+                    {/* BIO DISPLAY: Only on Photo #2 (Index 1) */}
+                    {photoIndex === 1 && profile.bio && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4 }}
+                        >
+                            <Typography
+                                variant="body1"
+                                color="white"
+                                sx={{
+                                    mt: 2,
+                                    fontWeight: 300,
+                                    fontStyle: 'italic',
+                                    fontSize: '1.1rem',
+                                    maxWidth: '90%',
+                                    lineHeight: 1.4,
+                                    textShadow: '0px 1px 3px rgba(0,0,0,0.9)',
+                                    opacity: 0.95
+                                }}
+                            >
+                                "{profile.bio}"
+                            </Typography>
+                        </motion.div>
+                    )}
                 </Box>
-
-                {/* Floating Buttons */}
-                {active && (
-                    <Box sx={{
-                        position: 'absolute',
-                        bottom: 110, // Higher up, above the text roughly
-                        right: 20,
-                        display: 'flex',
-                        // User said "sobre la imagen van a estar los dos botones".
-                        // Let's put them in a Row at the bottom right or center.
-                        // "Standard" tinder UI is row at bottom.
-                        // Let's keep them as a Row, maybe slightly higher than before to clear the text.
-                        flexDirection: 'row',
-                        justifyContent: 'flex-end',
-                        width: 'auto',
-                        left: 'auto',
-                        gap: 2,
-                        zIndex: 10
-                    }}>
-                        <IconButton
-                            onClick={() => onSwipe('left')}
-                            sx={{
-                                bgcolor: 'white',
-                                width: 56,
-                                height: 56,
-                                boxShadow: 3,
-                                '&:hover': { bgcolor: '#ffebee' }
-                            }}
-                        >
-                            <CloseIcon sx={{ fontSize: 28, color: '#ff4b4b' }} />
-                        </IconButton>
-
-                        <IconButton
-                            onClick={() => onSwipe('right')}
-                            sx={{
-                                bgcolor: 'white',
-                                width: 56,
-                                height: 56,
-                                boxShadow: 3,
-                                '&:hover': { bgcolor: '#e8f5e9' }
-                            }}
-                        >
-                            <FavoriteIcon sx={{ fontSize: 28, color: '#4caf50' }} />
-                        </IconButton>
-                    </Box>
-                )}
             </Paper>
         </motion.div>
     );

@@ -97,7 +97,7 @@ export const PhotosStep = () => {
 
             <Grid container spacing={2} sx={{ mt: 2 }}>
                 {sortedPhotos.map((photo: any, index: number) => (
-                    <Grid item key={photo.id} xs={6} sm={4} md={3}>
+                    <Grid key={photo.id} size={{ xs: 6, sm: 4, md: 3 }}>
                         <Card>
                             <CardMedia
                                 component="img"

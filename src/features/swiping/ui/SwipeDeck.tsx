@@ -1,13 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, CircularProgress } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import SwipeCard from './SwipeCard';
 import { AnimatePresence } from 'framer-motion';
 import { useGetFeedQuery, usePostSwipeMutation } from '../api/swipesApi';
 import { type Profile } from '../types';
 
 const SwipeDeck = () => {
-    const { data: feed, isLoading, refetch } = useGetFeedQuery({ excludeInactive: true });
+    const { data: feed, isLoading, isFetching, isError, error, refetch } = useGetFeedQuery({ excludeInactive: true });
+    // console.log('SWIPEDECK HOOK STATE:', { isLoading, isFetching, isError, error, feedLength: feed?.length, feed });
     const [currentIndex, setCurrentIndex] = useState(0);
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [postSwipe] = usePostSwipeMutation();
@@ -16,11 +19,14 @@ const SwipeDeck = () => {
 
     useEffect(() => {
         if (feed) {
-            if (profiles.length === 0 && feed.length > 0) {
-                setProfiles(feed);
+            // console.log('SwipeDeck useEffect: Syncing feed to profiles', feed.length);
+            setProfiles(feed);
+            // Only reset index if we are loading a fresh feed
+            if (feed.length > 0) {
+                // For now, let's just reset everything to be safe
                 setCurrentIndex(0);
                 setFinished(false);
-            } else if (feed.length === 0 && profiles.length === 0) {
+            } else {
                 setFinished(true);
             }
         }
@@ -98,6 +104,57 @@ const SwipeDeck = () => {
                     />
                 </AnimatePresence>
             )}
+
+            {/* PERSISTENT ACTION BUTTONS */}
+            <Box sx={{
+                position: 'absolute',
+                bottom: 30,
+                left: 0,
+                right: 0,
+                display: 'flex',
+                justifyContent: 'center',
+                gap: 6,
+                zIndex: 1000,
+                pointerEvents: 'none' // Allow clicks to pass through container
+            }}>
+                {/* Pass Button */}
+                <Button
+                    variant="contained"
+                    onClick={() => handleSwipe('left')}
+                    sx={{
+                        width: 70,
+                        height: 70,
+                        borderRadius: '50%',
+                        bgcolor: 'white',
+                        color: '#ff4b4b',
+                        pointerEvents: 'auto',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                        minWidth: 0, // Override MUI default style
+                        '&:hover': { bgcolor: '#ffebee' }
+                    }}
+                >
+                    <CloseIcon sx={{ fontSize: 32 }} />
+                </Button>
+
+                {/* Like Button */}
+                <Button
+                    variant="contained"
+                    onClick={() => handleSwipe('right')}
+                    sx={{
+                        width: 70,
+                        height: 70,
+                        borderRadius: '50%',
+                        bgcolor: 'white',
+                        color: '#4caf50',
+                        pointerEvents: 'auto',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                        minWidth: 0, // Override MUI default style
+                        '&:hover': { bgcolor: '#e8f5e9' }
+                    }}
+                >
+                    <FavoriteIcon sx={{ fontSize: 32 }} />
+                </Button>
+            </Box>
         </Box>
     );
 };

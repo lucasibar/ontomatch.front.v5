@@ -30,6 +30,7 @@ export const ProfilePage = () => {
             });
         }
         if (preferences) {
+            console.log('Received Preferences from API:', preferences);
             setPrefData({
                 distanceKm: preferences.distanceKm || 50,
                 ageRange: [preferences.ageMin || 18, preferences.ageMax || 99],
@@ -55,12 +56,14 @@ export const ProfilePage = () => {
         try {
             await updateProfile(formData).unwrap();
 
-            await updatePreferences({
+            const prefPayload = {
                 distanceKm: prefData.distanceKm,
                 ageMin: prefData.ageRange[0],
                 ageMax: prefData.ageRange[1],
                 gendersAllowed: prefData.gendersAllowed
-            }).unwrap();
+            };
+
+            await updatePreferences(prefPayload).unwrap();
 
             setToast({ open: true, message: 'Perfil y preferencias actualizados', severity: 'success' });
         } catch (error) {

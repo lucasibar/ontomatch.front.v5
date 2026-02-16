@@ -4,6 +4,7 @@ import { MainLayout } from '../shared/layouts/MainLayout';
 import { ProtectedRoute } from '../shared/ui/ProtectedRoute';
 import { RequireOnboarding } from '../shared/ui/RequireOnboarding';
 import { PublicRoute } from '../shared/ui/PublicRoute';
+import { ChatPage } from '../pages/ChatPage';
 
 export const router = createBrowserRouter([
     {
@@ -40,6 +41,10 @@ export const router = createBrowserRouter([
                             {
                                 path: '/matches',
                                 element: <MatchesPage />,
+                            },
+                            {
+                                path: '/chat',
+                                element: <ChatPage />,
                             },
                             {
                                 path: '/profile',

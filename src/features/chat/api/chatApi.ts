@@ -11,11 +11,17 @@ export interface Message {
 
 export interface Conversation {
     id: string;
-    lastMessageAt: string;
-    match: {
-        userLowId: string;
-        userHighId: string;
+    partner: {
+        id: string;
+        name: string;
+        photoUrl: string | null;
     };
+    lastMessage: {
+        body: string;
+        createdAt: string;
+        isMe?: boolean;
+    } | null;
+    updatedAt: string;
 }
 
 export const chatApi = baseApi.injectEndpoints({
