@@ -18,8 +18,34 @@ export const OnboardingStepper = () => {
     const { data: profile } = useGetMeQuery(undefined);
     const navigate = useNavigate();
 
+    const formatDateForApi = (dateStr: string) => {
+        if (!dateStr) return null;
+        // Check for DD/MM/YYYY format
+        const ddmmyyyy = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+        const match = dateStr.match(ddmmyyyy);
+
+        if (match) {
+            const [, day, month, year] = match;
+            return new Date(`${year}-${month}-${day}`).toISOString();
+        }
+
+        // Fallback for valid ISO strings or other formats (if any)
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+            return date.toISOString();
+        }
+        return null;
+    };
+
     const handleNext = async () => {
         // Validation logic per step could go here
+        if (activeStep === 0) {
+            const formattedDate = formatDateForApi(formData.birthdate);
+            if (!formData.birthdate || !formattedDate) {
+                alert('Por favor ingresa una fecha de nacimiento válida (DD/MM/YYYY)');
+                return;
+            }
+        }
 
         if (activeStep === steps.length - 1) {
             // Final Step (Photos) Validation
@@ -38,10 +64,17 @@ export const OnboardingStepper = () => {
         // Final Step: Finish
         try {
             // 1. Save Profile Data
-            // 1. Save Profile Data
+            const birthdateISO = formatDateForApi(formData.birthdate);
+
+            if (!birthdateISO) {
+                alert('Error en la fecha de nacimiento. Verifique el formato DD/MM/YYYY');
+                return;
+            }
+
+            console.log('Onboarding: Sending Profile Payload...');
             const profilePayload = {
                 name: formData.name,
-                birthdate: new Date(formData.birthdate).toISOString(),
+                birthdate: birthdateISO,
                 height: formData.height,
                 gender: formData.gender,
                 genderCustom: formData.genderCustom,
@@ -52,6 +85,7 @@ export const OnboardingStepper = () => {
                 lookingFor: formData.lookingFor,
                 isOnboarded: true,
             };
+            console.log('Payload:', profilePayload);
             await updateProfile(profilePayload).unwrap();
 
             // 2. Save Preferences

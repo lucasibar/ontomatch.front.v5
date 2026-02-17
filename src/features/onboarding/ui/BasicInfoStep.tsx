@@ -27,11 +27,11 @@ export const BasicInfoStep = ({ data, onChange }: { data: any, onChange: (d: any
 
             <TextField
                 label="Fecha de Nacimiento"
-                type="date"
-                InputLabelProps={{ shrink: true }}
+                placeholder="DD/MM/YYYY"
                 value={data.birthdate || ''}
                 onChange={(e) => onChange({ ...data, birthdate: e.target.value })}
                 fullWidth
+                helperText="Formato: DD/MM/YYYY"
             />
 
             <TextField
