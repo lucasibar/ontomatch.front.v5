@@ -7,6 +7,7 @@ import SwipeCard from './SwipeCard';
 import { AnimatePresence } from 'framer-motion';
 import { useGetFeedQuery, usePostSwipeMutation } from '../api/swipesApi';
 import { type Profile } from '../types';
+import { AppEmptyState } from '../../../shared/ui/AppEmptyState';
 
 const SwipeDeck = () => {
     const { data: feed, isLoading, isFetching, isError, error, refetch } = useGetFeedQuery({ excludeInactive: true });
@@ -70,12 +71,13 @@ const SwipeDeck = () => {
 
     if (hasReachedEnd || finished) {
         return (
-            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', gap: 2, bgcolor: '#111', color: 'white' }}>
-                <Typography variant="h5">No more profiles nearby.</Typography>
-                <Button variant="contained" color="primary" onClick={() => { setProfiles([]); refetch(); }}>
-                    Refresh Feed
-                </Button>
-            </Box>
+            <AppEmptyState
+                title="¡Estás al día!"
+                description="Has visto a todos por ahora. ¡Pronto llegarán nuevas caras increíbles!"
+                icon={FavoriteIcon}
+                actionLabel="Buscar de nuevo"
+                onAction={() => { setProfiles([]); refetch(); }}
+            />
         );
     }
 

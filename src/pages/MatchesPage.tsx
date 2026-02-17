@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Grid, Paper, CircularProgress, Container } from '@mui/material';
 import { useGetMatchesQuery } from '../features/matches/api/matchesApi';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import { AppEmptyState } from '../shared/ui/AppEmptyState';
 
 export const MatchesPage = () => {
-    const { data: matches, isLoading, isError, error } = useGetMatchesQuery();
+    const { data: matches, isLoading, isError } = useGetMatchesQuery();
     const navigate = useNavigate();
 
     if (isLoading) {
@@ -27,11 +28,13 @@ export const MatchesPage = () => {
 
     if (!matches || matches.length === 0) {
         return (
-            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: '#111', color: 'white', gap: 2 }}>
-                <ChatBubbleOutlineIcon sx={{ fontSize: 60, opacity: 0.5 }} />
-                <Typography variant="h6" sx={{ opacity: 0.7 }}>Recién empezando?</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.5 }}>Vamos para adelante! Sigue dando likes.</Typography>
-            </Box>
+            <AppEmptyState
+                title="¡Todo empieza con un Hola!"
+                description="Sigue dando likes. ¡Tu próxima gran conexión está a un swipe de distancia!"
+                icon={ChatBubbleOutlineIcon}
+                actionLabel="Ir a descubrir"
+                onAction={() => navigate('/')}
+            />
         );
     }
 
