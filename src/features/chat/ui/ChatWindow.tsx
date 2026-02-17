@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Box, TextField, IconButton, Paper, Typography, Avatar } from '@mui/material';
+import { Box, TextField, IconButton, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import { useGetMessagesQuery } from '../api/chatApi';
 import { socketService } from '../../../shared/api/socket';
@@ -79,22 +79,42 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
                         <Box key={msg.id} sx={{
                             display: 'flex',
                             justifyContent: isMe ? 'flex-end' : 'flex-start',
+                            mb: 0.5 // Reduced spacing
                         }}>
-                            <Paper sx={{
-                                p: 1.5,
+                            {/* Debugging Logic - remove in production */}
+                            {/* console.log('Me:', user?.id, 'Sender:', msg.senderUserId, 'isMe:', isMe) */}
+
+                            <Box sx={{
+                                p: 1,
                                 px: 2,
-                                borderRadius: 4,
-                                bgcolor: isMe ? '#dcf8c6' : 'white', // WhatsApp style (Light Green / White)
-                                borderTopRightRadius: isMe ? 0 : 4,
-                                borderTopLeftRadius: !isMe ? 0 : 4,
-                                maxWidth: '70%',
-                                boxShadow: 1
+                                maxWidth: '75%',
                             }}>
-                                <Typography variant="body1" sx={{ color: 'black' }}>{msg.body}</Typography>
-                                <Typography variant="caption" sx={{ display: 'block', textAlign: 'right', mt: 0.5, color: 'text.secondary', fontSize: '0.7rem' }}>
+                                <Typography
+                                    variant="body1"
+                                    sx={{
+                                        fontWeight: 'normal',
+                                        fontSize: '1rem',
+                                        lineHeight: 1.2,
+                                        color: isMe ? 'black' : '#E91E63', // User: Black, Partner: Pink
+                                        textAlign: isMe ? 'right' : 'left'
+                                    }}
+                                >
+                                    {msg.body}
+                                </Typography>
+                                <Typography
+                                    variant="caption"
+                                    sx={{
+                                        display: 'block',
+                                        textAlign: isMe ? 'right' : 'left',
+                                        mt: 0.2,
+                                        opacity: 0.6,
+                                        fontSize: '0.65rem',
+                                        color: 'gray'
+                                    }}
+                                >
                                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </Typography>
-                            </Paper>
+                            </Box>
                         </Box>
                     );
                 })}
@@ -110,7 +130,13 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                    sx={{ bgcolor: 'white', borderRadius: 1 }}
+                    sx={{
+                        bgcolor: 'white',
+                        borderRadius: 1,
+                        '& .MuiOutlinedInput-input': {
+                            color: 'black'
+                        }
+                    }}
                 />
                 <IconButton color="primary" onClick={handleSend} disabled={!inputText.trim()}>
                     <SendIcon />

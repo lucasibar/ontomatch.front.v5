@@ -13,6 +13,18 @@ export const profileApi = baseApi.injectEndpoints({
                 body,
             }),
             invalidatesTags: ['User'],
+            async onQueryStarted(args, { dispatch, queryFulfilled }) {
+                const patchResult = dispatch(
+                    profileApi.util.updateQueryData('getMe', undefined, (draft) => {
+                        Object.assign(draft, args);
+                    })
+                );
+                try {
+                    await queryFulfilled;
+                } catch {
+                    patchResult.undo();
+                }
+            },
         }),
         addPhoto: builder.mutation({
             query: (body: any) => ({
@@ -33,6 +45,18 @@ export const profileApi = baseApi.injectEndpoints({
                 body,
             }),
             invalidatesTags: ['User'],
+            async onQueryStarted(args, { dispatch, queryFulfilled }) {
+                const patchResult = dispatch(
+                    profileApi.util.updateQueryData('getPreferences', undefined, (draft) => {
+                        Object.assign(draft, args);
+                    })
+                );
+                try {
+                    await queryFulfilled;
+                } catch {
+                    patchResult.undo();
+                }
+            },
         }),
         deletePhoto: builder.mutation({
             query: (photoId: string) => ({

@@ -6,11 +6,20 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import SwipeCard from './SwipeCard';
 import { AnimatePresence } from 'framer-motion';
 import { useGetFeedQuery, usePostSwipeMutation } from '../api/swipesApi';
+import { useGetPreferencesQuery } from '../../onboarding/api/profileApi';
 import { type Profile } from '../types';
 import { AppEmptyState } from '../../../shared/ui/AppEmptyState';
 
 const SwipeDeck = () => {
-    const { data: feed, isLoading, isFetching, isError, error, refetch } = useGetFeedQuery({ excludeInactive: true });
+    const { data: preferences } = useGetPreferencesQuery(undefined);
+
+    const { data: feed, isLoading, isFetching, isError, error, refetch } = useGetFeedQuery({
+        excludeInactive: true,
+        minAge: preferences?.ageMin,
+        maxAge: preferences?.ageMax,
+        distanceKm: preferences?.distanceKm,
+        genders: preferences?.gendersAllowed
+    }, { skip: !preferences }); // Wait for preferences to load
     // console.log('SWIPEDECK HOOK STATE:', { isLoading, isFetching, isError, error, feedLength: feed?.length, feed });
     const [currentIndex, setCurrentIndex] = useState(0);
     const [profiles, setProfiles] = useState<Profile[]>([]);

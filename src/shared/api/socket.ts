@@ -9,7 +9,8 @@ class SocketService {
     connect(token: string) {
         if (this.socket) return this.socket;
 
-        this.socket = io(`http://localhost:3000/chat`, { // Hardcoded for now or use env
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        this.socket = io(`${baseUrl}/chat`, {
             auth: {
                 token: `Bearer ${token}`
             },
