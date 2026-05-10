@@ -4,7 +4,7 @@ import { store } from '../store';
 
 const theme = createTheme({
     palette: {
-        mode: 'dark',
+        mode: 'light',
         primary: {
             main: '#E91E63', // Modern Pink/Red for dating
         },
@@ -12,9 +12,13 @@ const theme = createTheme({
             main: '#7C4DFF',
         },
         background: {
-            default: '#121212',
-            paper: '#1E1E1E',
+            default: '#FDFCFE', // Premium Off-White
+            paper: '#FFFFFF',
         },
+        text: {
+            primary: '#1A1A1A',
+            secondary: '#666666',
+        }
     },
     typography: {
         fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',

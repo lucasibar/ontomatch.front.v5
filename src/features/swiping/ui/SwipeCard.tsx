@@ -83,9 +83,9 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active 
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        background: 'linear-gradient(135deg, #444 0%, #222 100%)',
+                        background: 'linear-gradient(135deg, #F5F5F7 0%, #E0E0E0 100%)',
                     }}>
-                        <Typography variant="h1" sx={{ color: 'rgba(255,255,255,0.1)', fontWeight: 900, fontSize: '10rem' }}>
+                        <Typography variant="h1" sx={{ color: 'rgba(0,0,0,0.05)', fontWeight: 900, fontSize: '10rem' }}>
                             {profile.name.charAt(0).toUpperCase()}
                         </Typography>
                     </Box>
@@ -130,59 +130,64 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active 
                     </Box>
                 )}
 
-                {/* INFO OVERLAY: TOP LEFT */}
-                <Box sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    pt: 6, // Space below bars
-                    px: 3,
-                    pb: 12, // Gradient fade out
-                    background: 'linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
-                    zIndex: 10,
-                    pointerEvents: 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-start'
-                }}>
-                    <Typography variant="h4" color="white" fontWeight="bold" sx={{ textShadow: '0px 2px 4px rgba(0,0,0,0.8)', letterSpacing: 0.5 }}>
-                        {profile.name}, {age}
-                    </Typography>
+                {/* INFO OVERLAY */}
+                {(photoIndex === 0 || (photoIndex === 1 && profile.bio)) && (
+                    <Box sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        pt: 6,
+                        px: 3,
+                        pb: 12,
+                        background: 'linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
+                        zIndex: 10,
+                        pointerEvents: 'none',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start'
+                    }}>
+                        {photoIndex === 0 && (
+                            <>
+                                <Typography variant="h4" color="white" fontWeight="bold" sx={{ textShadow: '0px 2px 4px rgba(0,0,0,0.8)', letterSpacing: 0.5 }}>
+                                    {profile.name}, {age}
+                                </Typography>
 
-                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                        <LocationOnIcon sx={{ color: '#ff4b4b', mr: 0.5, fontSize: 18, filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.8))' }} />
-                        <Typography variant="body1" color="white" sx={{ textShadow: '0px 1px 2px rgba(0,0,0,0.8)', fontWeight: 500 }}>
-                            {profile.distanceKm ? `${Math.round(profile.distanceKm)} km away` : 'Nearby'}
-                        </Typography>
-                    </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                                    <LocationOnIcon sx={{ color: '#ff4b4b', mr: 0.5, fontSize: 18, filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.8))' }} />
+                                    <Typography variant="body1" color="white" sx={{ textShadow: '0px 1px 2px rgba(0,0,0,0.8)', fontWeight: 500 }}>
+                                        {profile.distanceKm ? `${Math.round(profile.distanceKm)} km de distancia` : 'Cerca de ti'}
+                                    </Typography>
+                                </Box>
+                            </>
+                        )}
 
-                    {/* BIO DISPLAY: Only on Photo #2 (Index 1) */}
-                    {photoIndex === 1 && profile.bio && (
-                        <motion.div
-                            initial={{ opacity: 0, y: -5 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.4 }}
-                        >
-                            <Typography
-                                variant="body1"
-                                color="white"
-                                sx={{
-                                    mt: 2,
-                                    fontWeight: 300,
-                                    fontStyle: 'italic',
-                                    fontSize: '1.1rem',
-                                    maxWidth: '90%',
-                                    lineHeight: 1.4,
-                                    textShadow: '0px 1px 3px rgba(0,0,0,0.9)',
-                                    opacity: 0.95
-                                }}
+                        {photoIndex === 1 && profile.bio && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.4 }}
                             >
-                                "{profile.bio}"
-                            </Typography>
-                        </motion.div>
-                    )}
-                </Box>
+                                <Typography
+                                    variant="body1"
+                                    color="white"
+                                    sx={{
+                                        mt: 2,
+                                        fontWeight: 300,
+                                        fontStyle: 'italic',
+                                        fontSize: '1.1rem',
+                                        maxWidth: '90%',
+                                        lineHeight: 1.4,
+                                        textShadow: '0px 1px 3px rgba(0,0,0,0.9)',
+                                        opacity: 0.95
+                                    }}
+                                >
+                                    "{profile.bio}"
+                                </Typography>
+                            </motion.div>
+                        )}
+                    </Box>
+                )}
             </Paper>
         </motion.div>
     );

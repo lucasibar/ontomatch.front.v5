@@ -7,6 +7,7 @@ import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { AppEmptyState } from '../shared/ui/AppEmptyState';
 import { ChatWindow } from '../features/chat/ui/ChatWindow';
+import { PartnerProfileView } from '../features/chat/ui/PartnerProfileView';
 
 export const MatchesPage = () => {
     const navigate = useNavigate();
@@ -16,6 +17,7 @@ export const MatchesPage = () => {
     const { data: conversations, isLoading, isError } = useGetConversationsQuery();
 
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+    const [viewingPartnerId, setViewingPartnerId] = useState<string | null>(null);
 
     // Initialize selection from navigation state if available
     useEffect(() => {
@@ -36,7 +38,7 @@ export const MatchesPage = () => {
 
     if (isLoading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: '#111' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: 'background.default' }}>
                 <CircularProgress />
             </Box>
         );
@@ -44,7 +46,7 @@ export const MatchesPage = () => {
 
     if (isError) {
         return (
-            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: '#111', color: 'white', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: 'background.default', gap: 2 }}>
                 <Typography variant="h6" sx={{ opacity: 0.7 }}>Algo salió mal</Typography>
                 <Typography variant="body2" sx={{ opacity: 0.5 }}>No pudimos cargar tus conversaciones.</Typography>
             </Box>
@@ -65,8 +67,8 @@ export const MatchesPage = () => {
 
     // List Component Content
     const matchesList = (
-        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#111' }}>
-            <Typography variant="h4" fontWeight="bold" sx={{ p: 2, pb: 2, color: 'white' }}>Matches</Typography>
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
+            <Typography variant="h4" fontWeight="bold" sx={{ p: 2, pb: 2 }}>Matches</Typography>
             <Box sx={{ overflowY: 'auto', flexGrow: 1 }}>
                 <List sx={{ width: '100%', bgcolor: 'transparent' }}>
                     {conversations.map((conv) => {
@@ -80,7 +82,7 @@ export const MatchesPage = () => {
                             subtitleColor = "text.secondary";
                         } else {
                             subtitleText = "Tu turno de hablar";
-                            subtitleColor = "rgba(255, 255, 255, 0.5)";
+                            subtitleColor = "text.secondary";
                         }
 
                         const isSelected = selectedConversationId === conv.id;
@@ -93,8 +95,8 @@ export const MatchesPage = () => {
                                         selected={isSelected}
                                         sx={{
                                             py: 2, px: 2,
-                                            bgcolor: isSelected ? 'rgba(255, 255, 255, 0.08) !important' : 'transparent',
-                                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.05)' }
+                                            bgcolor: isSelected ? 'action.selected' : 'transparent',
+                                            '&:hover': { bgcolor: 'action.hover' }
                                         }}
                                     >
                                         <ListItemAvatar>
@@ -106,7 +108,7 @@ export const MatchesPage = () => {
                                         </ListItemAvatar>
                                         <ListItemText
                                             primary={
-                                                <Typography variant="h6" fontWeight="bold" color="white">
+                                                <Typography variant="h6" fontWeight="bold">
                                                     {conv.partner.name}
                                                 </Typography>
                                             }
@@ -126,7 +128,7 @@ export const MatchesPage = () => {
                                         />
                                     </ListItemButton>
                                 </ListItem>
-                                <Divider variant="inset" component="li" sx={{ borderColor: 'rgba(255,255,255,0.1)', ml: 10 }} />
+                                <Divider variant="inset" component="li" sx={{ ml: 10 }} />
                             </div>
                         );
                     })}
@@ -136,7 +138,7 @@ export const MatchesPage = () => {
     );
 
     return (
-        <Box sx={{ height: 'calc(100vh - 64px)', bgcolor: '#111', color: 'white' }}>
+        <Box sx={{ height: 'calc(100vh - 64px)', bgcolor: 'background.default' }}>
             {isMobile ? (
                 // Mobile Layout: Switch between List and Chat
                 selectedConversationId ? (() => {
@@ -149,21 +151,29 @@ export const MatchesPage = () => {
                             right: 0,
                             bottom: 0,
                             zIndex: 2000,
-                            bgcolor: '#111',
+                            bgcolor: 'background.default',
                             display: 'flex',
                             flexDirection: 'column'
                         }}>
-                            <Box sx={{ p: 1, px: 2, bgcolor: '#222', display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                                <IconButton onClick={handleBackToList} sx={{ color: 'white', mr: 1, p: 0.5 }}>
+                            <Box sx={{ p: 1, px: 2, bgcolor: 'background.paper', display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
+                                <IconButton onClick={handleBackToList} sx={{ mr: 1, p: 0.5 }}>
                                     <ArrowBackIcon />
                                 </IconButton>
-                                <Avatar
-                                    src={selectedConversation?.partner.photoUrl || undefined}
-                                    sx={{ width: 32, height: 32, mr: 1.5 }}
-                                />
-                                <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
-                                    {selectedConversation?.partner.name || 'Chat'}
-                                </Typography>
+                                <Box
+                                    onClick={() => {
+                                        console.log('Opening profile for:', selectedConversation?.partner.id);
+                                        setViewingPartnerId(selectedConversation?.partner.id || null);
+                                    }}
+                                    sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
+                                >
+                                    <Avatar
+                                        src={selectedConversation?.partner.photoUrl || undefined}
+                                        sx={{ width: 32, height: 32, mr: 1.5 }}
+                                    />
+                                    <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
+                                        {selectedConversation?.partner.name || 'Chat'}
+                                    </Typography>
+                                </Box>
                             </Box>
                             <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
                                 <ChatWindow conversationId={selectedConversationId} />
@@ -175,22 +185,52 @@ export const MatchesPage = () => {
                 )
             ) : (
                 // Desktop Layout: Split View
-                <Paper sx={{ height: '100%', display: 'flex', bgcolor: '#111', borderRadius: 0 }}>
-                    <Box sx={{ width: 350, borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+                <Paper sx={{ height: '100%', display: 'flex', bgcolor: 'background.default', borderRadius: 0 }}>
+                    <Box sx={{ width: 350, borderRight: 1, borderColor: 'divider' }}>
                         {matchesList}
                     </Box>
                     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                         {selectedConversationId ? (
-                            <ChatWindow conversationId={selectedConversationId} />
+                            <>
+                                {(() => {
+                                    const selectedConversation = conversations?.find(c => c.id === selectedConversationId);
+                                    return (
+                                        <Box sx={{ p: 1, px: 3, bgcolor: 'background.paper', display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
+                                            <Box
+                                                onClick={() => {
+                                                    console.log('Opening profile for (desktop):', selectedConversation?.partner.id);
+                                                    setViewingPartnerId(selectedConversation?.partner.id || null);
+                                                }}
+                                                sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
+                                            >
+                                                <Avatar
+                                                    src={selectedConversation?.partner.photoUrl || undefined}
+                                                    sx={{ width: 40, height: 40, mr: 2 }}
+                                                />
+                                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                                    {selectedConversation?.partner.name || 'Chat'}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    );
+                                })()}
+                                <ChatWindow conversationId={selectedConversationId} />
+                            </>
                         ) : (
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 2, bgcolor: '#000' }}>
-                                <ChatBubbleOutlineIcon sx={{ fontSize: 60, opacity: 0.2, color: 'white' }} />
-                                <Typography variant="h6" sx={{ opacity: 0.5 }}>Selecciona un chat para comenzar</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 2, bgcolor: 'background.default' }}>
+                                <ChatBubbleOutlineIcon sx={{ fontSize: 60, opacity: 0.2 }} />
+                                <Typography variant="h6" sx={{ opacity: 0.5 }} color="text.secondary">Selecciona un chat para comenzar</Typography>
                             </Box>
                         )}
                     </Box>
                 </Paper>
             )}
+
+            <PartnerProfileView
+                userId={viewingPartnerId}
+                open={Boolean(viewingPartnerId)}
+                onClose={() => setViewingPartnerId(null)}
+            />
         </Box>
     );
 };

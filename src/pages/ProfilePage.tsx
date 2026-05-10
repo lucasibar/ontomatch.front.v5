@@ -1,5 +1,5 @@
-import { Box, Typography, Container, TextField, Button, MenuItem, FormControl, InputLabel, Select, Snackbar, Alert, Slider } from '@mui/material';
-import { useGetMeQuery, useUpdateProfileMutation, useGetPreferencesQuery, useUpdatePreferencesMutation } from '../features/onboarding/api/profileApi';
+import { Box, Typography, Container, TextField, Button, MenuItem, FormControl, InputLabel, Select, Snackbar, Alert, Slider, Autocomplete } from '@mui/material';
+import { useGetMeQuery, useUpdateProfileMutation, useGetPreferencesQuery, useUpdatePreferencesMutation, useLazySearchLocationsQuery } from '../features/onboarding/api/profileApi';
 import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { logout } from '../features/auth/model/authSlice';
@@ -15,6 +15,17 @@ export const ProfilePage = () => {
     const [prefData, setPrefData] = useState<any>({ distanceKm: 50, ageRange: [18, 99], gendersAllowed: [] });
     const [toast, setToast] = useState<{ open: boolean, message: string, severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
+    // Location Search Logic
+    const [search, setSearch] = useState('');
+    const [trigger, { data: results, isLoading: isSearching }] = useLazySearchLocationsQuery();
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (search.length > 2) trigger(search);
+        }, 300); // Optimized debounce
+        return () => clearTimeout(timer);
+    }, [search, trigger]);
+
     useEffect(() => {
         if (profile) {
             setFormData({
@@ -26,6 +37,7 @@ export const ProfilePage = () => {
                 height: profile.height,
                 locationText: profile.locationText,
                 neighborhood: profile.neighborhood,
+                coachingSchool: profile.coachingSchool,
                 // Add lookingFor if not already there
             });
         }
@@ -78,7 +90,6 @@ export const ProfilePage = () => {
             <Typography variant="h4" fontWeight="bold" mb={3}>Mi Perfil</Typography>
 
             {/* Reuse Photos Component - It handles its own state/API */}
-            <Typography variant="h6" mb={1}>Fotos</Typography>
             <PhotosStep />
 
             <Box component="form" display="flex" flexDirection="column" gap={3} mt={4}>
@@ -96,6 +107,12 @@ export const ProfilePage = () => {
                     rows={3}
                     value={formData.bio || ''}
                     onChange={(e) => handleChange('bio', e.target.value)}
+                    fullWidth
+                />
+                <TextField
+                    label="Escuela de Coaching"
+                    value={formData.coachingSchool || ''}
+                    onChange={(e) => handleChange('coachingSchool', e.target.value)}
                     fullWidth
                 />
                 <TextField
@@ -142,12 +159,32 @@ export const ProfilePage = () => {
                     </Select>
                 </FormControl>
 
-                <TextField
-                    label="Ubicación (Texto)"
-                    value={formData.locationText || ''}
-                    onChange={(e) => handleChange('locationText', e.target.value)}
-                    fullWidth
-                    helperText="Pronto mejoraremos la selección de mapa para edición"
+                <Autocomplete
+                    options={(results as any[]) || []}
+                    getOptionLabel={(option: any) => typeof option === 'string' ? option : `${option.locality}, ${option.province}`}
+                    loading={isSearching}
+                    onInputChange={(_e, newInputValue) => setSearch(newInputValue)}
+                    onChange={(_e, value: any) => {
+                        if (value) {
+                            setFormData((prev: any) => ({ ...prev, locationId: value.id, locationText: `${value.locality}, ${value.province}` }));
+                        } else {
+                            setFormData((prev: any) => ({ ...prev, locationId: null, locationText: '' }));
+                        }
+                    }}
+                    renderInput={(params) => <TextField {...params} label="Localidad / Ciudad" fullWidth />}
+                    value={formData.locationText ? formData.locationText : null}
+                    isOptionEqualToValue={(option, value) => {
+                        const optionLabel = `${option.locality}, ${option.province}`;
+                        return optionLabel === value || option.id === value?.id;
+                    }}
+                    renderOption={(props, option) => {
+                        const { key, ...optionProps } = props;
+                        return (
+                            <li key={option.id || key} {...optionProps}>
+                                {option.locality}, {option.province}
+                            </li>
+                        );
+                    }}
                 />
                 <TextField
                     label="Barrio / Zona"

@@ -1,6 +1,8 @@
-import { useEffect, useState, useRef } from 'react';
-import { Box, TextField, IconButton, Typography } from '@mui/material';
+import React, { useEffect, useState, useRef } from 'react';
+import { Box, TextField, IconButton, Typography, Popover } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
+import EmojiEmotionsIcon from '@mui/icons-material/SentimentSatisfiedAlt';
+import EmojiPicker, { Theme, type EmojiClickData } from 'emoji-picker-react';
 import { useGetMessagesQuery } from '../api/chatApi';
 import { socketService } from '../../../shared/api/socket';
 import { useSelector } from 'react-redux';
@@ -13,10 +15,25 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
     const token = useSelector((state: RootState) => state.auth.token);
     const user = useSelector((state: RootState) => state.auth.user);
     const messagesEndRef = useRef<null | HTMLDivElement>(null);
+    const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
+
+    const handleEmojiClick = (emojiData: EmojiClickData) => {
+        setInputText(prev => prev + emojiData.emoji);
+    };
+
+    const handleEmojiOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleEmojiClose = () => {
+        setAnchorEl(null);
+    };
+
+    const open = Boolean(anchorEl);
 
     useEffect(() => {
         if (initialMessages) {
@@ -71,7 +88,7 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
     };
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#f5f5f5' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'background.default' }}>
             <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {messages.map((msg) => {
                     const isMe = msg.senderUserId === user?.id;
@@ -121,24 +138,72 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
                 <div ref={messagesEndRef} />
             </Box>
 
-            <Box sx={{ p: 2, display: 'flex', gap: 1, bgcolor: 'background.paper', borderTop: 1, borderColor: 'divider' }}>
+            <Box sx={{ p: 2, pt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
+                <IconButton onClick={handleEmojiOpen}>
+                    <EmojiEmotionsIcon />
+                </IconButton>
+
+                <Popover
+                    open={open}
+                    anchorEl={anchorEl}
+                    onClose={handleEmojiClose}
+                    disableRestoreFocus
+                    disableEnforceFocus
+                    disablePortal
+                    anchorOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left',
+                    }}
+                    transformOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                    }}
+                    sx={{
+                        zIndex: 9999,
+                        '& .MuiPaper-root': {
+                            borderRadius: '16px',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                        }
+                    }}
+                >
+                    <Box sx={{ width: 350, height: 400 }}>
+                        <EmojiPicker
+                            onEmojiClick={handleEmojiClick}
+                            autoFocusSearch={false}
+                            width="100%"
+                            height="100%"
+                            theme={Theme.LIGHT}
+                        />
+                    </Box>
+                </Popover>
+
                 <TextField
                     fullWidth
                     variant="outlined"
-                    placeholder="Type a message..."
+                    placeholder="Escribe un mensaje..."
                     size="small"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                     sx={{
-                        bgcolor: 'white',
-                        borderRadius: 1,
-                        '& .MuiOutlinedInput-input': {
-                            color: 'black'
+                        bgcolor: 'background.paper',
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: 8,
+                            bgcolor: 'background.paper',
                         }
                     }}
                 />
-                <IconButton color="primary" onClick={handleSend} disabled={!inputText.trim()}>
+                <IconButton
+                    color="primary"
+                    onClick={handleSend}
+                    disabled={!inputText.trim()}
+                    sx={{
+                        bgcolor: 'primary.main',
+                        color: 'white',
+                        '&:hover': { bgcolor: 'primary.dark' },
+                        '&.Mui-disabled': { bgcolor: 'action.disabledBackground', color: 'action.disabled' }
+                    }}
+                >
                     <SendIcon />
                 </IconButton>
             </Box>

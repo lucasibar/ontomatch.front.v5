@@ -71,8 +71,8 @@ const SwipeDeck = () => {
     const isInitializing = feed && feed.length > 0 && profiles.length === 0;
 
     if ((isLoading || isInitializing) && profiles.length === 0) {
-        return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: '#111', color: 'white' }}>
-            <CircularProgress color="inherit" />
+        return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: 'background.default' }}>
+            <CircularProgress color="primary" />
         </Box>;
     }
 
@@ -91,7 +91,7 @@ const SwipeDeck = () => {
     }
 
     return (
-        <Box sx={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden', bgcolor: '#222' }}>
+        <Box sx={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden', bgcolor: 'background.default' }}>
             {/* Render Next Card (Inactive, below) */}
             {nextProfile && (
                 <SwipeCard
@@ -116,56 +116,58 @@ const SwipeDeck = () => {
                 </AnimatePresence>
             )}
 
-            {/* PERSISTENT ACTION BUTTONS */}
-            <Box sx={{
-                position: 'absolute',
-                bottom: 30,
-                left: 0,
-                right: 0,
-                display: 'flex',
-                justifyContent: 'center',
-                gap: 6,
-                zIndex: 1000,
-                pointerEvents: 'none' // Allow clicks to pass through container
-            }}>
-                {/* Pass Button */}
-                <Button
-                    variant="contained"
-                    onClick={() => handleSwipe('left')}
-                    sx={{
-                        width: 70,
-                        height: 70,
-                        borderRadius: '50%',
-                        bgcolor: 'white',
-                        color: '#ff4b4b',
-                        pointerEvents: 'auto',
-                        boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                        minWidth: 0, // Override MUI default style
-                        '&:hover': { bgcolor: '#ffebee' }
-                    }}
-                >
-                    <CloseIcon sx={{ fontSize: 32 }} />
-                </Button>
+            {/* PERSISTENT ACTION BUTTONS - Only show when we actually have a profile loaded */}
+            {currentProfile && (
+                <Box sx={{
+                    position: 'absolute',
+                    bottom: 30,
+                    left: 0,
+                    right: 0,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: 6,
+                    zIndex: 1000,
+                    pointerEvents: 'none' // Allow clicks to pass through container
+                }}>
+                    {/* Pass Button */}
+                    <Button
+                        variant="contained"
+                        onClick={() => handleSwipe('left')}
+                        sx={{
+                            width: 70,
+                            height: 70,
+                            borderRadius: '50%',
+                            bgcolor: 'white',
+                            color: '#ff4b4b',
+                            pointerEvents: 'auto',
+                            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                            minWidth: 0, // Override MUI default style
+                            '&:hover': { bgcolor: '#ffebee' }
+                        }}
+                    >
+                        <CloseIcon sx={{ fontSize: 32 }} />
+                    </Button>
 
-                {/* Like Button */}
-                <Button
-                    variant="contained"
-                    onClick={() => handleSwipe('right')}
-                    sx={{
-                        width: 70,
-                        height: 70,
-                        borderRadius: '50%',
-                        bgcolor: 'white',
-                        color: '#4caf50',
-                        pointerEvents: 'auto',
-                        boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                        minWidth: 0, // Override MUI default style
-                        '&:hover': { bgcolor: '#e8f5e9' }
-                    }}
-                >
-                    <FavoriteIcon sx={{ fontSize: 32 }} />
-                </Button>
-            </Box>
+                    {/* Like Button */}
+                    <Button
+                        variant="contained"
+                        onClick={() => handleSwipe('right')}
+                        sx={{
+                            width: 70,
+                            height: 70,
+                            borderRadius: '50%',
+                            bgcolor: 'white',
+                            color: '#4caf50',
+                            pointerEvents: 'auto',
+                            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                            minWidth: 0, // Override MUI default style
+                            '&:hover': { bgcolor: '#e8f5e9' }
+                        }}
+                    >
+                        <FavoriteIcon sx={{ fontSize: 32 }} />
+                    </Button>
+                </Box>
+            )}
         </Box>
     );
 };

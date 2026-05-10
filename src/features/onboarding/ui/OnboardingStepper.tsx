@@ -82,6 +82,7 @@ export const OnboardingStepper = () => {
                 locationText: formData.locationText,
                 locationId: formData.locationId,
                 neighborhood: formData.neighborhood,
+                coachingSchool: formData.coachingSchool,
                 lookingFor: formData.lookingFor,
                 isOnboarded: true,
             };

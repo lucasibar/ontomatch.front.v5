@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Box, Button, TextField, Typography, Paper, Container } from '@mui/material';
+import { Box, Button, TextField, Typography, Alert } from '@mui/material';
 import { useNavigate, Link } from 'react-router-dom';
 import { baseApi } from '../shared/api/baseApi';
+import { setCredentials } from '../features/auth/model/authSlice';
+import { useDispatch } from 'react-redux';
 
-// Define register endpoint here manually or update authApi. 
-// For speed let's just inject endpoint here or update authApi next.
 export const extendedAuthApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         register: builder.mutation<{ access_token: string }, any>({
@@ -13,18 +13,11 @@ export const extendedAuthApi = baseApi.injectEndpoints({
                 method: 'POST',
                 body: credentials,
             }),
-            async onQueryStarted(_arg, { queryFulfilled }) {
-                try {
-                    await queryFulfilled;
-                } catch (err) { }
-            },
         }),
     }),
 });
 
 const { useRegisterMutation } = extendedAuthApi;
-import { setCredentials } from '../features/auth/model/authSlice';
-import { useDispatch } from 'react-redux';
 
 export const RegisterPage = () => {
     const [email, setEmail] = useState('');
@@ -37,7 +30,6 @@ export const RegisterPage = () => {
         e.preventDefault();
         try {
             const result = await register({ email, password }).unwrap();
-            // Auto login logic
             dispatch(setCredentials({ user: { email }, token: result.access_token }));
             navigate('/onboarding');
         } catch (err) {
@@ -46,57 +38,69 @@ export const RegisterPage = () => {
     };
 
     return (
-        <Container maxWidth="sm" sx={{ display: 'flex', alignItems: 'center', height: '100vh' }}>
-            <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
-                <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: 'bold', mb: 3 }}>
-                    Join OntoMatch
+        <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '100vh',
+            width: '100%',
+            p: { xs: 2, sm: 4 },
+        }}>
+            <Box sx={{ maxWidth: 400, width: '100%' }}>
+                <Typography variant="h3" align="center" fontWeight="900"
+                    sx={{ mb: 1, letterSpacing: -1, color: 'text.primary' }}
+                >
+                    OntoMatch
+                </Typography>
+                <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 5 }}>
+                    Únete a la comunidad
                 </Typography>
 
-                <form onSubmit={handleSubmit}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <TextField
-                            label="Email"
-                            type="email"
-                            fullWidth
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <TextField
-                            label="Password"
-                            type="password"
-                            fullWidth
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
+                <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+                    {error && (
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                            Error al registrarse. Prueba con otro email.
+                        </Alert>
+                    )}
 
-                        {error && (
-                            <Typography color="error" variant="body2">
-                                Registration failed. Try a different email.
-                            </Typography>
-                        )}
+                    <TextField
+                        label="Email"
+                        type="email"
+                        fullWidth
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        margin="normal"
+                    />
+                    <TextField
+                        label="Password"
+                        type="password"
+                        fullWidth
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        margin="normal"
+                    />
 
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            size="large"
-                            fullWidth
-                            disabled={isLoading}
-                            sx={{ mt: 2 }}
-                        >
-                            {isLoading ? 'Creating Account...' : 'Sign Up'}
-                        </Button>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        size="large"
+                        fullWidth
+                        disabled={isLoading}
+                        sx={{ mt: 3, py: 1.5, borderRadius: 2 }}
+                    >
+                        {isLoading ? 'Creando cuenta...' : 'Registrarse'}
+                    </Button>
 
-                        <Box sx={{ textAlign: 'center', mt: 2 }}>
-                            <Typography variant="body2">
-                                Already have an account? <Link to="/login">Login</Link>
-                            </Typography>
-                        </Box>
+                    <Box sx={{ textAlign: 'center', mt: 3 }}>
+                        <Typography variant="body2" color="text.secondary">
+                            ¿Ya tienes cuenta? <Link to="/login" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>Inicia sesión</Link>
+                        </Typography>
                     </Box>
-                </form>
-            </Paper>
-        </Container>
+                </Box>
+            </Box>
+        </Box>
     );
 };

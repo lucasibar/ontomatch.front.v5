@@ -13,7 +13,7 @@ export const profileApi = baseApi.injectEndpoints({
                 body,
             }),
             invalidatesTags: ['User'],
-            async onQueryStarted(args, { dispatch, queryFulfilled }) {
+            async onQueryStarted(args: any, { dispatch, queryFulfilled }: any) {
                 const patchResult = dispatch(
                     profileApi.util.updateQueryData('getMe', undefined, (draft) => {
                         Object.assign(draft, args);
@@ -45,7 +45,7 @@ export const profileApi = baseApi.injectEndpoints({
                 body,
             }),
             invalidatesTags: ['User'],
-            async onQueryStarted(args, { dispatch, queryFulfilled }) {
+            async onQueryStarted(args: any, { dispatch, queryFulfilled }: any) {
                 const patchResult = dispatch(
                     profileApi.util.updateQueryData('getPreferences', undefined, (draft) => {
                         Object.assign(draft, args);
@@ -79,6 +79,10 @@ export const profileApi = baseApi.injectEndpoints({
         searchLocations: builder.query({
             query: (q: string) => `/locations?q=${q}`,
         }),
+        getProfileById: builder.query({
+            query: (id: string) => `/profiles/${id}`,
+            providesTags: (_result: any, _error: any, id: string) => [{ type: 'User', id }],
+        }),
     }),
 });
 
@@ -93,5 +97,7 @@ export const {
     useGetSignatureQuery,
     useLazyGetSignatureQuery,
     useSearchLocationsQuery,
-    useLazySearchLocationsQuery
+    useLazySearchLocationsQuery,
+    useGetProfileByIdQuery,
+    useLazyGetProfileByIdQuery
 } = profileApi;

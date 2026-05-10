@@ -10,7 +10,7 @@ export const BasicInfoStep = ({ data, onChange }: { data: any, onChange: (d: any
     useEffect(() => {
         const timer = setTimeout(() => {
             if (search.length > 2) trigger(search);
-        }, 500);
+        }, 300); // Optimized debounce
         return () => clearTimeout(timer);
     }, [search, trigger]);
 
@@ -23,6 +23,14 @@ export const BasicInfoStep = ({ data, onChange }: { data: any, onChange: (d: any
                 value={data.name || ''}
                 onChange={(e) => onChange({ ...data, name: e.target.value })}
                 fullWidth
+            />
+
+            <TextField
+                label="Escuela de Coaching"
+                value={data.coachingSchool || ''}
+                onChange={(e) => onChange({ ...data, coachingSchool: e.target.value })}
+                fullWidth
+                helperText="¿Dónde estudiaste?"
             />
 
             <TextField
@@ -45,17 +53,22 @@ export const BasicInfoStep = ({ data, onChange }: { data: any, onChange: (d: any
 
             <Autocomplete
                 options={(results as any[]) || []}
-                getOptionLabel={(option: any) => `${option.locality}, ${option.province}`}
+                getOptionLabel={(option: any) => typeof option === 'string' ? option : `${option.locality}, ${option.province}`}
                 loading={isLoading}
                 onInputChange={(_e, newInputValue) => setSearch(newInputValue)}
                 onChange={(_e, value: any) => {
                     if (value) {
-                        onChange({ ...data, locationId: value.id, locationText: value.locality });
+                        onChange({ ...data, locationId: value.id, locationText: `${value.locality}, ${value.province}` });
+                    } else {
+                        onChange({ ...data, locationId: null, locationText: '' });
                     }
                 }}
                 renderInput={(params) => <TextField {...params} label="Localidad / Ciudad" fullWidth />}
-                value={data.locationText ? { locality: data.locationText, province: '' } : null}
-                isOptionEqualToValue={(option, value) => option.locality === value.locality}
+                value={data.locationText ? data.locationText : null}
+                isOptionEqualToValue={(option, value) => {
+                    const optionLabel = `${option.locality}, ${option.province}`;
+                    return optionLabel === value || option.id === value?.id;
+                }}
                 renderOption={(props, option) => {
                     const { key, ...optionProps } = props;
                     return (

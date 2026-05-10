@@ -31,8 +31,7 @@ export const AppEmptyState: React.FC<AppEmptyStateProps> = ({
                 justifyContent: 'center',
                 alignItems: 'center',
                 height: '100vh',
-                bgcolor: '#111',
-                color: 'white',
+                bgcolor: 'background.default',
                 gap: 3,
                 textAlign: 'center',
                 p: 4

@@ -79,59 +79,105 @@ export const PhotosStep = () => {
 
     return (
         <Box>
-            <Typography variant="h6" gutterBottom>Add your best photos</Typography>
-            <Typography variant="body2" color="textSecondary" gutterBottom>
-                Photos: {sortedPhotos.length} / 6 {sortedPhotos.length < 3 && "(Minimum 3 required)"}
+            <Typography variant="h6" gutterBottom>
+                Mis Fotos ({sortedPhotos.length}/6) {sortedPhotos.length < 3 && <Typography component="span" variant="caption" color="error" sx={{ ml: 1 }}> (Mínimo 3 requeridas)</Typography>}
             </Typography>
 
-            {sortedPhotos.length < 3 && (
-                <Typography color="error" variant="body2" sx={{ mb: 1 }}>
-                    You need at least 3 photos to continue.
-                </Typography>
-            )}
-
-            <Button variant="contained" component="label" disabled={uploading || sortedPhotos.length >= 6}>
-                {uploading ? 'Uploading...' : 'Upload Photo'}
-                <input type="file" hidden accept="image/*" onChange={handleFileChange} />
-            </Button>
-
-            <Grid container spacing={2} sx={{ mt: 2 }}>
+            <Grid container spacing={2}>
                 {sortedPhotos.map((photo: any, index: number) => (
-                    <Grid key={photo.id} size={{ xs: 6, sm: 4, md: 3 }}>
-                        <Card>
+                    <Grid key={photo.id} size={{ xs: 4, sm: 4, md: 3 }}>
+                        <Card sx={{
+                            position: 'relative',
+                            aspectRatio: '9/16',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            overflow: 'hidden',
+                            borderRadius: 2,
+                            boxShadow: 2
+                        }}>
                             <CardMedia
                                 component="img"
-                                height="140"
                                 image={photo.url}
                                 alt="Profile photo"
+                                sx={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover'
+                                }}
                             />
-                            <Box display="flex" justifyContent="center" p={1}>
+                            {/* Overlay Controls */}
+                            <Box sx={{
+                                position: 'absolute',
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                bgcolor: 'rgba(0,0,0,0.5)',
+                                display: 'flex',
+                                justifyContent: 'space-around',
+                                py: 0.5
+                            }}>
                                 <IconButton
                                     size="small"
                                     onClick={() => handleMove(index, 'left')}
                                     disabled={index === 0}
+                                    sx={{ color: 'white' }}
                                 >
-                                    <ArrowBack />
+                                    <ArrowBack fontSize="small" />
                                 </IconButton>
                                 <IconButton
                                     size="small"
                                     onClick={() => handleDelete(photo.id)}
                                     color="error"
                                 >
-                                    <Delete />
+                                    <Delete fontSize="small" />
                                 </IconButton>
                                 <IconButton
                                     size="small"
                                     onClick={() => handleMove(index, 'right')}
                                     disabled={index === sortedPhotos.length - 1}
+                                    sx={{ color: 'white' }}
                                 >
-                                    <ArrowForward />
+                                    <ArrowForward fontSize="small" />
                                 </IconButton>
                             </Box>
                         </Card>
                     </Grid>
                 ))}
+
+                {/* Upload "Card" */}
+                {sortedPhotos.length < 6 && (
+                    <Grid size={{ xs: 4, sm: 4, md: 3 }}>
+                        <Button
+                            component="label"
+                            disabled={uploading}
+                            sx={{
+                                width: '100%',
+                                aspectRatio: '9/16',
+                                border: '2px dashed',
+                                borderColor: 'divider',
+                                borderRadius: 2,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 1,
+                                bgcolor: 'action.hover',
+                                color: 'text.secondary',
+                                '&:hover': {
+                                    bgcolor: 'action.selected',
+                                    borderColor: 'primary.main',
+                                    color: 'primary.main'
+                                }
+                            }}
+                        >
+                            <Box sx={{ fontSize: 40, fontWeight: 'light' }}>+</Box>
+                            <Typography variant="caption">
+                                {uploading ? 'Subiendo...' : 'Agregar Foto'}
+                            </Typography>
+                            <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                        </Button>
+                    </Grid>
+                )}
             </Grid>
         </Box>
     );
+
 };
