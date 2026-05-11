@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { Box, Button, TextField, Typography, Alert } from '@mui/material';
 import { useNavigate, Link } from 'react-router-dom';
-import { baseApi } from '../shared/api/baseApi';
-import { setCredentials } from '../features/auth/model/authSlice';
-import { useDispatch } from 'react-redux';
 
 import { useRegisterMutation } from '../features/auth/api/authApi';
 
