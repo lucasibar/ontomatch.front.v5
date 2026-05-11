@@ -70,9 +70,10 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active 
                     height: '100%',
                     width: '100%',
                     overflow: 'hidden',
-                    borderRadius: 0,
+                    borderRadius: 3, 
                     position: 'relative',
-                    bgcolor: 'black'
+                    bgcolor: '#FFFFFF',
+                    border: '1px solid #E4E4E7',
                 }}
             >
                 {/* Image or Fallback */}
@@ -83,9 +84,9 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active 
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        background: 'linear-gradient(135deg, #F5F5F7 0%, #E0E0E0 100%)',
+                        background: '#F4F4F5',
                     }}>
-                        <Typography variant="h1" sx={{ color: 'rgba(0,0,0,0.05)', fontWeight: 900, fontSize: '10rem' }}>
+                        <Typography variant="h1" sx={{ color: '#E4E4E7', fontWeight: 700, fontSize: '10rem' }}>
                             {profile.name.charAt(0).toUpperCase()}
                         </Typography>
                     </Box>
@@ -140,7 +141,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active 
                         pt: 6,
                         px: 3,
                         pb: 12,
-                        background: 'linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)',
+                        background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%)',
                         zIndex: 10,
                         pointerEvents: 'none',
                         display: 'flex',
@@ -154,7 +155,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active 
                                 </Typography>
 
                                 <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-                                    <LocationOnIcon sx={{ color: '#ff4b4b', mr: 0.5, fontSize: 18, filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.8))' }} />
+                                    <LocationOnIcon sx={{ color: '#FFFFFF', mr: 0.5, fontSize: 18 }} />
                                     <Typography variant="body1" color="white" sx={{ textShadow: '0px 1px 2px rgba(0,0,0,0.8)', fontWeight: 500 }}>
                                         {profile.distanceKm ? `${Math.round(profile.distanceKm)} km de distancia` : 'Cerca de ti'}
                                     </Typography>

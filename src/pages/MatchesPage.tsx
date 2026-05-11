@@ -8,6 +8,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { AppEmptyState } from '../shared/ui/AppEmptyState';
 import { ChatWindow } from '../features/chat/ui/ChatWindow';
 import { PartnerProfileView } from '../features/chat/ui/PartnerProfileView';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../app/store';
 
 export const MatchesPage = () => {
     const navigate = useNavigate();
@@ -15,6 +17,7 @@ export const MatchesPage = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const { data: conversations, isLoading, isError } = useGetConversationsQuery();
+    const user = useSelector((state: RootState) => state.auth.user);
 
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     const [viewingPartnerId, setViewingPartnerId] = useState<string | null>(null);
@@ -68,7 +71,7 @@ export const MatchesPage = () => {
     // List Component Content
     const matchesList = (
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
-            <Typography variant="h4" fontWeight="bold" sx={{ p: 2, pb: 2 }}>Matches</Typography>
+            <Typography variant="h5" fontWeight="500" sx={{ p: 3, pb: 2, color: 'text.primary' }}>Matches</Typography>
             <Box sx={{ overflowY: 'auto', flexGrow: 1 }}>
                 <List sx={{ width: '100%', bgcolor: 'transparent' }}>
                     {conversations.map((conv) => {
@@ -76,10 +79,13 @@ export const MatchesPage = () => {
 
                         let subtitleText = "";
                         let subtitleColor = "text.secondary";
+                        let timeString = "";
 
                         if (hasMessage) {
-                            subtitleText = conv.lastMessage!.body;
+                            const isMe = conv.lastMessage.senderUserId === user?.id;
+                            subtitleText = isMe ? `Vos: ${conv.lastMessage.body}` : conv.lastMessage.body;
                             subtitleColor = "text.secondary";
+                            timeString = new Date(conv.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                         } else {
                             subtitleText = "Tu turno de hablar";
                             subtitleColor = "text.secondary";
@@ -94,9 +100,9 @@ export const MatchesPage = () => {
                                         onClick={() => handleSelectConversation(conv.id)}
                                         selected={isSelected}
                                         sx={{
-                                            py: 2, px: 2,
-                                            bgcolor: isSelected ? 'action.selected' : 'transparent',
-                                            '&:hover': { bgcolor: 'action.hover' }
+                                            py: 1.5, px: 3,
+                                            bgcolor: isSelected ? '#FAF9F7' : 'transparent',
+                                            '&:hover': { bgcolor: '#F5F4F0' }
                                         }}
                                     >
                                         <ListItemAvatar>
@@ -108,9 +114,16 @@ export const MatchesPage = () => {
                                         </ListItemAvatar>
                                         <ListItemText
                                             primary={
-                                                <Typography variant="h6" fontWeight="bold">
-                                                    {conv.partner.name}
-                                                </Typography>
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <Typography variant="subtitle1" fontWeight="500" color="text.primary">
+                                                        {conv.partner.name}
+                                                    </Typography>
+                                                    {timeString && (
+                                                        <Typography variant="caption" sx={{ color: 'text.secondary', opacity: 0.8 }}>
+                                                            {timeString}
+                                                        </Typography>
+                                                    )}
+                                                </Box>
                                             }
                                             secondary={
                                                 <Typography
@@ -128,7 +141,7 @@ export const MatchesPage = () => {
                                         />
                                     </ListItemButton>
                                 </ListItem>
-                                <Divider variant="inset" component="li" sx={{ ml: 10 }} />
+                                <Divider variant="inset" component="li" sx={{ ml: 11, borderColor: '#F0F0F0' }} />
                             </div>
                         );
                     })}
@@ -170,7 +183,7 @@ export const MatchesPage = () => {
                                         src={selectedConversation?.partner.photoUrl || undefined}
                                         sx={{ width: 32, height: 32, mr: 1.5 }}
                                     />
-                                    <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 500, color: 'text.primary' }}>
                                         {selectedConversation?.partner.name || 'Chat'}
                                     </Typography>
                                 </Box>
@@ -207,7 +220,7 @@ export const MatchesPage = () => {
                                                     src={selectedConversation?.partner.photoUrl || undefined}
                                                     sx={{ width: 40, height: 40, mr: 2 }}
                                                 />
-                                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                                <Typography variant="subtitle1" sx={{ fontWeight: 500, color: 'text.primary' }}>
                                                     {selectedConversation?.partner.name || 'Chat'}
                                                 </Typography>
                                             </Box>

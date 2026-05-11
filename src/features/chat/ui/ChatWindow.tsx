@@ -102,18 +102,22 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
                             {/* console.log('Me:', user?.id, 'Sender:', msg.senderUserId, 'isMe:', isMe) */}
 
                             <Box sx={{
-                                p: 1,
+                                p: 1.5,
                                 px: 2,
                                 maxWidth: '75%',
+                                bgcolor: isMe ? '#3A3A3C' : '#F0F0F0',
+                                borderRadius: 3,
+                                borderBottomRightRadius: isMe ? 0 : 3,
+                                borderBottomLeftRadius: isMe ? 3 : 0,
                             }}>
                                 <Typography
                                     variant="body1"
                                     sx={{
-                                        fontWeight: 'normal',
-                                        fontSize: '1rem',
-                                        lineHeight: 1.2,
-                                        color: isMe ? 'black' : '#E91E63', // User: Black, Partner: Pink
-                                        textAlign: isMe ? 'right' : 'left'
+                                        fontWeight: 400,
+                                        fontSize: '0.95rem',
+                                        lineHeight: 1.4,
+                                        color: isMe ? '#FFFFFF' : '#2C2C2E',
+                                        textAlign: 'left'
                                     }}
                                 >
                                     {msg.body}
@@ -122,11 +126,10 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
                                     variant="caption"
                                     sx={{
                                         display: 'block',
-                                        textAlign: isMe ? 'right' : 'left',
-                                        mt: 0.2,
-                                        opacity: 0.6,
+                                        textAlign: 'right',
+                                        mt: 0.5,
                                         fontSize: '0.65rem',
-                                        color: 'gray'
+                                        color: isMe ? 'rgba(255,255,255,0.6)' : '#71717A'
                                     }}
                                 >
                                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -138,8 +141,8 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
                 <div ref={messagesEndRef} />
             </Box>
 
-            <Box sx={{ p: 2, pt: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
-                <IconButton onClick={handleEmojiOpen}>
+            <Box sx={{ p: 2, display: 'flex', gap: 1.5, alignItems: 'center', borderTop: '1px solid #F0F0F0', bgcolor: '#FFFFFF' }}>
+                <IconButton onClick={handleEmojiOpen} sx={{ color: '#8E8E93', '&:hover': { color: '#3A3A3C', bgcolor: 'transparent' } }}>
                     <EmojiEmotionsIcon />
                 </IconButton>
 
@@ -162,7 +165,8 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
                         zIndex: 9999,
                         '& .MuiPaper-root': {
                             borderRadius: '16px',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+                            border: '1px solid #F0F0F0'
                         }
                     }}
                 >
@@ -179,32 +183,32 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
 
                 <TextField
                     fullWidth
-                    variant="outlined"
+                    variant="standard"
                     placeholder="Escribe un mensaje..."
-                    size="small"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                    sx={{
-                        bgcolor: 'background.paper',
-                        '& .MuiOutlinedInput-root': {
-                            borderRadius: 8,
-                            bgcolor: 'background.paper',
+                    InputProps={{
+                        disableUnderline: true,
+                        sx: {
+                            fontSize: '0.95rem',
+                            color: '#2C2C2E',
+                            fontWeight: 300,
+                            '&::placeholder': { color: '#8E8E93', opacity: 1 }
                         }
                     }}
                 />
+                
                 <IconButton
-                    color="primary"
                     onClick={handleSend}
                     disabled={!inputText.trim()}
                     sx={{
-                        bgcolor: 'primary.main',
-                        color: 'white',
-                        '&:hover': { bgcolor: 'primary.dark' },
-                        '&.Mui-disabled': { bgcolor: 'action.disabledBackground', color: 'action.disabled' }
+                        color: '#3A3A3C',
+                        '&:hover': { bgcolor: 'transparent', color: '#1C1C1E' },
+                        '&.Mui-disabled': { color: '#D1D1D6' }
                     }}
                 >
-                    <SendIcon />
+                    <SendIcon sx={{ fontSize: 22 }} />
                 </IconButton>
             </Box>
         </Box>

@@ -83,9 +83,19 @@ export const PhotosStep = () => {
                 Mis Fotos ({sortedPhotos.length}/6) {sortedPhotos.length < 3 && <Typography component="span" variant="caption" color="error" sx={{ ml: 1 }}> (Mínimo 3 requeridas)</Typography>}
             </Typography>
 
-            <Grid container spacing={2}>
+            <Box sx={{
+                display: 'flex',
+                gap: 2,
+                overflowX: 'auto',
+                pb: 2,
+                px: 2,
+                scrollSnapType: 'x mandatory',
+                '&::-webkit-scrollbar': { display: 'none' },
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none',
+            }}>
                 {sortedPhotos.map((photo: any, index: number) => (
-                    <Grid key={photo.id} size={{ xs: 4, sm: 4, md: 3 }}>
+                    <Box key={photo.id} sx={{ minWidth: '120px', width: '30%', flexShrink: 0, scrollSnapAlign: 'start' }}>
                         <Card sx={{
                             position: 'relative',
                             aspectRatio: '9/16',
@@ -93,7 +103,7 @@ export const PhotosStep = () => {
                             flexDirection: 'column',
                             overflow: 'hidden',
                             borderRadius: 2,
-                            boxShadow: 2
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
                         }}>
                             <CardMedia
                                 component="img"
@@ -111,7 +121,8 @@ export const PhotosStep = () => {
                                 bottom: 0,
                                 left: 0,
                                 right: 0,
-                                bgcolor: 'rgba(0,0,0,0.5)',
+                                bgcolor: 'rgba(255,255,255,0.85)',
+                                backdropFilter: 'blur(4px)',
                                 display: 'flex',
                                 justifyContent: 'space-around',
                                 py: 0.5
@@ -120,7 +131,7 @@ export const PhotosStep = () => {
                                     size="small"
                                     onClick={() => handleMove(index, 'left')}
                                     disabled={index === 0}
-                                    sx={{ color: 'white' }}
+                                    sx={{ color: '#3A3A3C' }}
                                 >
                                     <ArrowBack fontSize="small" />
                                 </IconButton>
@@ -135,48 +146,47 @@ export const PhotosStep = () => {
                                     size="small"
                                     onClick={() => handleMove(index, 'right')}
                                     disabled={index === sortedPhotos.length - 1}
-                                    sx={{ color: 'white' }}
+                                    sx={{ color: '#3A3A3C' }}
                                 >
                                     <ArrowForward fontSize="small" />
                                 </IconButton>
                             </Box>
                         </Card>
-                    </Grid>
+                    </Box>
                 ))}
 
                 {/* Upload "Card" */}
                 {sortedPhotos.length < 6 && (
-                    <Grid size={{ xs: 4, sm: 4, md: 3 }}>
+                    <Box sx={{ minWidth: '120px', width: '30%', flexShrink: 0, scrollSnapAlign: 'start' }}>
                         <Button
                             component="label"
                             disabled={uploading}
                             sx={{
                                 width: '100%',
                                 aspectRatio: '9/16',
-                                border: '2px dashed',
-                                borderColor: 'divider',
+                                border: '2px dashed #EBEBEB',
                                 borderRadius: 2,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: 1,
-                                bgcolor: 'action.hover',
-                                color: 'text.secondary',
+                                bgcolor: '#FAFAFA',
+                                color: '#8E8E93',
                                 '&:hover': {
-                                    bgcolor: 'action.selected',
-                                    borderColor: 'primary.main',
-                                    color: 'primary.main'
+                                    bgcolor: '#F5F5F5',
+                                    borderColor: '#3A3A3C',
+                                    color: '#3A3A3C'
                                 }
                             }}
                         >
-                            <Box sx={{ fontSize: 40, fontWeight: 'light' }}>+</Box>
-                            <Typography variant="caption">
-                                {uploading ? 'Subiendo...' : 'Agregar Foto'}
+                            <Box sx={{ fontSize: 32, fontWeight: 300 }}>+</Box>
+                            <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
+                                {uploading ? '...' : 'Agregar'}
                             </Typography>
                             <input type="file" hidden accept="image/*" onChange={handleFileChange} />
                         </Button>
-                    </Grid>
+                    </Box>
                 )}
-            </Grid>
+            </Box>
         </Box>
     );
 

@@ -87,12 +87,8 @@ export const ProfilePage = () => {
 
     return (
         <Container maxWidth="sm" sx={{ pb: 10, pt: 2 }}>
-            <Typography variant="h4" fontWeight="bold" mb={3}>Mi Perfil</Typography>
 
-            {/* Reuse Photos Component - It handles its own state/API */}
-            <PhotosStep />
-
-            <Box component="form" display="flex" flexDirection="column" gap={3} mt={4}>
+            <Box component="form" display="flex" flexDirection="column" gap={3} mt={1}>
                 <Typography variant="h6">Información Personal</Typography>
 
                 <TextField
@@ -236,12 +232,16 @@ export const ProfilePage = () => {
                     />
                 </Box>
 
+                <Box sx={{ mt: 4, mx: { xs: -2, sm: 0 } }}>
+                    <PhotosStep />
+                </Box>
+
                 <Button
-                    variant="contained"
+                    variant="outlined"
                     size="large"
                     onClick={handleSave}
                     disabled={isUpdating}
-                    sx={{ mt: 2 }}
+                    sx={{ mt: 2, borderWidth: 2, '&:hover': { borderWidth: 2 } }}
                 >
                     {isUpdating ? 'Guardando...' : 'Guardar Cambios'}
                 </Button>
