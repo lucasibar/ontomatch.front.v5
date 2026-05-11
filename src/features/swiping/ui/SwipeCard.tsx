@@ -12,7 +12,7 @@ interface SwipeCardProps {
     active: boolean; // Is top card
 }
 
-const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo, active }) => {
+const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe: _onSwipe, onInfo: _onInfo, active }) => {
     const [photoIndex, setPhotoIndex] = useState(0);
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-10, 10]); // Reduced rotation for cleaner feel

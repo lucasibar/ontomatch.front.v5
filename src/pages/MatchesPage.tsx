@@ -81,11 +81,12 @@ export const MatchesPage = () => {
                         let subtitleColor = "text.secondary";
                         let timeString = "";
 
-                        if (hasMessage) {
-                            const isMe = conv.lastMessage.senderUserId === user?.id;
-                            subtitleText = isMe ? `Vos: ${conv.lastMessage.body}` : conv.lastMessage.body;
+                        if (hasMessage && conv.lastMessage) {
+                            const lastMsg: any = conv.lastMessage;
+                            const isMe = lastMsg.senderUserId === user?.id;
+                            subtitleText = isMe ? `Vos: ${lastMsg.body}` : lastMsg.body;
                             subtitleColor = "text.secondary";
-                            timeString = new Date(conv.lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            timeString = new Date(lastMsg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                         } else {
                             subtitleText = "Tu turno de hablar";
                             subtitleColor = "text.secondary";

@@ -3,11 +3,11 @@ import { Box, Typography, Slider } from '@mui/material';
 
 export const PreferencesStep = ({ data, onChange }: { data: any, onChange: (d: any) => void }) => {
 
-    const handleDistanceChange = (event: Event, newValue: number | number[]) => {
+    const handleDistanceChange = (_event: Event, newValue: number | number[]) => {
         onChange({ ...data, distanceKm: newValue as number });
     };
 
-    const handleAgeRangeChange = (event: Event, newValue: number | number[]) => {
+    const handleAgeRangeChange = (_event: Event, newValue: number | number[]) => {
         onChange({ ...data, ageRange: newValue as number[] });
     };
 

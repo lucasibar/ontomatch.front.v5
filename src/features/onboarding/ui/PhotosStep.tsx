@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Button, Typography, Grid, Card, CardMedia, IconButton } from '@mui/material';
+import { Box, Button, Typography, Card, CardMedia, IconButton } from '@mui/material';
 import { Delete, ArrowBack, ArrowForward } from '@mui/icons-material';
 import { useLazyGetSignatureQuery, useAddPhotoMutation, useGetMeQuery, useDeletePhotoMutation, useReorderPhotosMutation } from '../api/profileApi';
 
@@ -75,7 +75,8 @@ export const PhotosStep = () => {
         await reorderPhotos(ids).unwrap();
     };
 
-    const sortedPhotos = [...(profile?.user?.photos || [])].sort((a: any, b: any) => a.position - b.position);
+    const p: any = profile;
+    const sortedPhotos = [...(p?.user?.photos || [])].sort((a: any, b: any) => a.position - b.position);
 
     return (
         <Box>

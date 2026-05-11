@@ -1,5 +1,5 @@
 
-import { Box, Typography, Button, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Checkbox, FormGroup } from '@mui/material';
+import { Box, Typography, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Checkbox, FormGroup } from '@mui/material';
 
 export const IdentityStep = ({ data, onChange }: { data: any, onChange: (d: any) => void }) => {
     // Gender types

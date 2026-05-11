@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, CircularProgress } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { Box, Button, CircularProgress } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import SwipeCard from './SwipeCard';
@@ -13,14 +13,15 @@ import { AppEmptyState } from '../../../shared/ui/AppEmptyState';
 const SwipeDeck = () => {
     const { data: preferences } = useGetPreferencesQuery(undefined);
 
-    const { data: feed, isLoading, isFetching, isError, error, refetch } = useGetFeedQuery({
+    const prefs: any = preferences;
+
+    const { data: feed, isLoading, refetch } = useGetFeedQuery({
         excludeInactive: true,
-        minAge: preferences?.ageMin,
-        maxAge: preferences?.ageMax,
-        distanceKm: preferences?.distanceKm,
-        genders: preferences?.gendersAllowed
-    }, { skip: !preferences }); // Wait for preferences to load
-    // console.log('SWIPEDECK HOOK STATE:', { isLoading, isFetching, isError, error, feedLength: feed?.length, feed });
+        minAge: prefs?.ageMin,
+        maxAge: prefs?.ageMax,
+        distanceKm: prefs?.distanceKm,
+        genders: prefs?.gendersAllowed
+    }, { skip: !preferences });
     const [currentIndex, setCurrentIndex] = useState(0);
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [postSwipe] = usePostSwipeMutation();

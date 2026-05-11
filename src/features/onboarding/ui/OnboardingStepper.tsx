@@ -49,7 +49,8 @@ export const OnboardingStepper = () => {
 
         if (activeStep === steps.length - 1) {
             // Final Step (Photos) Validation
-            const photoCount = profile?.user?.photos?.length || 0;
+            const p: any = profile;
+            const photoCount = p?.user?.photos?.length || 0;
             if (photoCount < 3) {
                 alert(`Debes subir al menos 3 fotos. Tienes ${photoCount}.`);
                 return;

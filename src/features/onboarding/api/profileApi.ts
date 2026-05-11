@@ -16,7 +16,7 @@ export const profileApi = baseApi.injectEndpoints({
             async onQueryStarted(args: any, { dispatch, queryFulfilled }: any) {
                 const patchResult = dispatch(
                     profileApi.util.updateQueryData('getMe', undefined, (draft) => {
-                        Object.assign(draft, args);
+                        Object.assign(draft as any, args);
                     })
                 );
                 try {
@@ -48,7 +48,7 @@ export const profileApi = baseApi.injectEndpoints({
             async onQueryStarted(args: any, { dispatch, queryFulfilled }: any) {
                 const patchResult = dispatch(
                     profileApi.util.updateQueryData('getPreferences', undefined, (draft) => {
-                        Object.assign(draft, args);
+                        Object.assign(draft as any, args);
                     })
                 );
                 try {

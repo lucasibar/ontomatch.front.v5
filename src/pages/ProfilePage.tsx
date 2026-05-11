@@ -28,16 +28,17 @@ export const ProfilePage = () => {
 
     useEffect(() => {
         if (profile) {
+            const p: any = profile;
             setFormData({
-                name: profile.name,
-                bio: profile.bio,
-                birthdate: profile.birthdate, // Format YYYY-MM-DD
-                gender: profile.gender,
-                lookingFor: profile.looking_for, // API returns snake_case usually, check Profile entity
-                height: profile.height,
-                locationText: profile.locationText,
-                neighborhood: profile.neighborhood,
-                coachingSchool: profile.coachingSchool,
+                name: p.name,
+                bio: p.bio,
+                birthdate: p.birthdate, // Format YYYY-MM-DD
+                gender: p.gender,
+                lookingFor: p.looking_for, // API returns snake_case usually, check Profile entity
+                height: p.height,
+                locationText: p.locationText,
+                neighborhood: p.neighborhood,
+                coachingSchool: p.coachingSchool,
                 // Add lookingFor if not already there
             });
         }
