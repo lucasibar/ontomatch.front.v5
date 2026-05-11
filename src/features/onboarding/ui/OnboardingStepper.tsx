@@ -4,11 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { BasicInfoStep } from './BasicInfoStep';
 import { IdentityStep } from './IdentityStep';
 import { BioStep } from './BioStep';
+import { LocationStep } from './LocationStep';
 import { PreferencesStep } from './PreferencesStep';
 import { PhotosStep } from './PhotosStep';
 import { useUpdateProfileMutation, useGetMeQuery, useUpdatePreferencesMutation } from '../api/profileApi';
 
-const steps = ['Datos Personales', 'Identidad', 'Sobre mí', 'Preferencias', 'Fotos'];
+const steps = ['Datos Personales', 'Identidad', 'Sobre mí', 'Ubicación', 'Preferencias', 'Fotos'];
 
 export const OnboardingStepper = () => {
     const [activeStep, setActiveStep] = useState(0);
@@ -116,8 +117,9 @@ export const OnboardingStepper = () => {
             case 0: return <BasicInfoStep data={formData} onChange={setFormData} />;
             case 1: return <IdentityStep data={formData} onChange={setFormData} />;
             case 2: return <BioStep data={formData} onChange={setFormData} />;
-            case 3: return <PreferencesStep data={formData} onChange={setFormData} />;
-            case 4: return <PhotosStep />;
+            case 3: return <LocationStep data={formData} onChange={setFormData} />;
+            case 4: return <PreferencesStep data={formData} onChange={setFormData} />;
+            case 5: return <PhotosStep />;
             default: return 'Unknown step';
         }
     };
