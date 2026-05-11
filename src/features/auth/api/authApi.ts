@@ -12,17 +12,24 @@ export const authApi = baseApi.injectEndpoints({
             async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
                 try {
                     const { data } = await queryFulfilled;
-                    // Decode token or user info if needed, for MVP we assume backend sends user
-                    // But our backend login currently only returns access_token. 
-                    // We need /auth/me or similar, or decode jwt.
-                    // For now, let's assume we decode or backend sends user.
-                    // Let's fake user for MVP progress if backend doesn't send it yet.
-                    const user = data.user;
-                    dispatch(setCredentials({ user, token: data.access_token }));
+                    dispatch(setCredentials({ user: data.user, token: data.access_token }));
+                } catch (err) { }
+            },
+        }),
+        register: builder.mutation<{ access_token: string; user: any }, any>({
+            query: (credentials) => ({
+                url: '/auth/register',
+                method: 'POST',
+                body: credentials,
+            }),
+            async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+                try {
+                    const { data } = await queryFulfilled;
+                    dispatch(setCredentials({ user: data.user, token: data.access_token }));
                 } catch (err) { }
             },
         }),
     }),
 });
 
-export const { useLoginMutation } = authApi;
+export const { useLoginMutation, useRegisterMutation } = authApi;

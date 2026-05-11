@@ -289,6 +289,7 @@ export const MatchesPage = () => {
                 userId={viewingPartnerId}
                 open={Boolean(viewingPartnerId)}
                 onClose={() => setViewingPartnerId(null)}
+                onActionSuccess={() => setSelectedConversationId(null)}
             />
 
             {/* 3-dot Menu */}

@@ -1,36 +1,19 @@
 import { useState } from 'react';
 import { Box, Button, TextField, Typography, Alert } from '@mui/material';
 import { useNavigate, Link } from 'react-router-dom';
-import { baseApi } from '../shared/api/baseApi';
-import { setCredentials } from '../features/auth/model/authSlice';
-import { useDispatch } from 'react-redux';
 
-export const extendedAuthApi = baseApi.injectEndpoints({
-    endpoints: (builder) => ({
-        register: builder.mutation<{ access_token: string }, any>({
-            query: (credentials) => ({
-                url: '/auth/register',
-                method: 'POST',
-                body: credentials,
-            }),
-        }),
-    }),
-});
-
-const { useRegisterMutation } = extendedAuthApi;
+import { useRegisterMutation } from '../features/auth/api/authApi';
 
 export const RegisterPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [register, { isLoading, error }] = useRegisterMutation();
-    const dispatch = useDispatch();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const result = await register({ email, password }).unwrap();
-            dispatch(setCredentials({ user: { email }, token: result.access_token }));
+            await register({ email, password }).unwrap();
             navigate('/onboarding');
         } catch (err) {
             console.error('Failed to register', err);
