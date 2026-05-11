@@ -34,7 +34,7 @@ export const MainLayout = () => {
                     <BottomNavigation
                         showLabels
                         value={value}
-                        onChange={(event, newValue) => handleNavigation(newValue)}
+                        onChange={(_event, newValue) => handleNavigation(newValue)}
                     >
                         <BottomNavigationAction label="Swipes" icon={<Style />} />
                         <BottomNavigationAction label="Matches" icon={<Favorite />} />
@@ -48,7 +48,7 @@ export const MainLayout = () => {
                     <BottomNavigation
                         showLabels
                         value={value}
-                        onChange={(event, newValue) => handleNavigation(newValue)}
+                        onChange={(_event, newValue) => handleNavigation(newValue)}
                     >
                         <BottomNavigationAction label="Swipes" icon={<Style />} />
                         <BottomNavigationAction label="Matches" icon={<Favorite />} />

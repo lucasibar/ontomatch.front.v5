@@ -1,4 +1,5 @@
-import React, { ElementType } from 'react';
+import React from 'react';
+import type { ElementType } from 'react';
 import { Box, Typography, Button, keyframes } from '@mui/material';
 
 // Define a subtle pulse animation

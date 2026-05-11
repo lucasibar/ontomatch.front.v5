@@ -42,11 +42,12 @@ export const ProfilePage = () => {
             });
         }
         if (preferences) {
-            console.log('Received Preferences from API:', preferences);
+            const prefs: any = preferences;
+            console.log('Received Preferences from API:', prefs);
             setPrefData({
-                distanceKm: preferences.distanceKm || 50,
-                ageRange: [preferences.ageMin || 18, preferences.ageMax || 99],
-                gendersAllowed: preferences.gendersAllowed || []
+                distanceKm: prefs.distanceKm || 50,
+                ageRange: [prefs.ageMin || 18, prefs.ageMax || 99],
+                gendersAllowed: prefs.gendersAllowed || []
             });
         }
     }, [profile, preferences]);
