@@ -35,13 +35,25 @@ export const chatApi = baseApi.injectEndpoints({
             providesTags: (_result, _error, arg) => [{ type: 'Conversation', id: arg.conversationId }],
         }),
         sendMessage: builder.mutation<void, { conversationId: string; body: string }>({
-            queryFn: () => ({ data: undefined }), // Socket only for sending? Or REST fall back? 
-            // For MVP usually we use socket emit, but let's stick to REST for consistent history saving if easier, 
-            // BUT our backend ChatGateway handles sendMessage. 
-            // If we used REST endpoint in ChatController it would be standard. 
-            // Since prompt specified "sendMessage persists", let's assume we do it via Socket in UI.
+            queryFn: () => ({ data: undefined }),
+        }),
+        blockUser: builder.mutation<void, { blockedId: string }>({
+            query: (body) => ({
+                url: '/blocks',
+                method: 'POST',
+                body,
+            }),
+            invalidatesTags: ['Conversation'],
+        }),
+        reportUser: builder.mutation<void, { reportedId: string; reason: string }>({
+            query: (body) => ({
+                url: '/reports',
+                method: 'POST',
+                body,
+            }),
+            invalidatesTags: ['Conversation'],
         }),
     }),
 });
 
-export const { useGetConversationsQuery, useGetMessagesQuery } = chatApi;
+export const { useGetConversationsQuery, useGetMessagesQuery, useBlockUserMutation, useReportUserMutation } = chatApi;

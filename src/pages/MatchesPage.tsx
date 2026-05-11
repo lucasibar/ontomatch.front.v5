@@ -1,10 +1,11 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Box, Typography, CircularProgress, List, ListItem, ListItemButton, ListItemAvatar, Avatar, ListItemText, Divider, Paper, useMediaQuery, useTheme, IconButton } from '@mui/material';
-import { useGetConversationsQuery } from '../features/chat/api/chatApi';
+import { Box, Typography, CircularProgress, List, ListItem, ListItemButton, ListItemAvatar, Avatar, ListItemText, Divider, Paper, useMediaQuery, useTheme, IconButton, Menu, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
+import { useGetConversationsQuery, useBlockUserMutation, useReportUserMutation } from '../features/chat/api/chatApi';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { AppEmptyState } from '../shared/ui/AppEmptyState';
 import { ChatWindow } from '../features/chat/ui/ChatWindow';
 import { PartnerProfileView } from '../features/chat/ui/PartnerProfileView';
@@ -22,6 +23,17 @@ export const MatchesPage = () => {
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     const [viewingPartnerId, setViewingPartnerId] = useState<string | null>(null);
 
+    // Block/Report state
+    const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+    const [blockDialog, setBlockDialog] = useState(false);
+    const [reportDialog, setReportDialog] = useState(false);
+    const [reportReason, setReportReason] = useState('');
+    const [blockUser] = useBlockUserMutation();
+    const [reportUser] = useReportUserMutation();
+
+    const selectedConversation = conversations?.find(c => c.id === selectedConversationId);
+    const partnerId = selectedConversation?.partner?.id;
+
     // Initialize selection from navigation state if available
     useEffect(() => {
         if (location.state && location.state.conversationId) {
@@ -37,6 +49,29 @@ export const MatchesPage = () => {
 
     const handleBackToList = () => {
         setSelectedConversationId(null);
+    };
+
+    const handleBlock = async () => {
+        if (!partnerId) return;
+        try {
+            await blockUser({ blockedId: partnerId }).unwrap();
+            setBlockDialog(false);
+            setSelectedConversationId(null);
+        } catch (e) {
+            console.error('Block failed', e);
+        }
+    };
+
+    const handleReport = async () => {
+        if (!partnerId || reportReason.length < 5) return;
+        try {
+            await reportUser({ reportedId: partnerId, reason: reportReason }).unwrap();
+            setReportDialog(false);
+            setReportReason('');
+            setSelectedConversationId(null);
+        } catch (e) {
+            console.error('Report failed', e);
+        }
     };
 
     if (isLoading) {
@@ -188,6 +223,11 @@ export const MatchesPage = () => {
                                         {selectedConversation?.partner.name || 'Chat'}
                                     </Typography>
                                 </Box>
+                                <Box sx={{ ml: 'auto' }}>
+                                    <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)} size="small">
+                                        <MoreVertIcon />
+                                    </IconButton>
+                                </Box>
                             </Box>
                             <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
                                 <ChatWindow conversationId={selectedConversationId} />
@@ -225,6 +265,11 @@ export const MatchesPage = () => {
                                                     {selectedConversation?.partner.name || 'Chat'}
                                                 </Typography>
                                             </Box>
+                                            <Box sx={{ ml: 'auto' }}>
+                                                <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)} size="small">
+                                                    <MoreVertIcon />
+                                                </IconButton>
+                                            </Box>
                                         </Box>
                                     );
                                 })()}
@@ -245,6 +290,58 @@ export const MatchesPage = () => {
                 open={Boolean(viewingPartnerId)}
                 onClose={() => setViewingPartnerId(null)}
             />
+
+            {/* 3-dot Menu */}
+            <Menu
+                anchorEl={menuAnchor}
+                open={Boolean(menuAnchor)}
+                onClose={() => setMenuAnchor(null)}
+                PaperProps={{ sx: { borderRadius: 2, minWidth: 160 } }}
+            >
+                <MenuItem onClick={() => { setMenuAnchor(null); setBlockDialog(true); }}>
+                    Bloquear
+                </MenuItem>
+                <MenuItem onClick={() => { setMenuAnchor(null); setReportDialog(true); }} sx={{ color: 'error.main' }}>
+                    Reportar
+                </MenuItem>
+            </Menu>
+
+            {/* Block Confirmation */}
+            <Dialog open={blockDialog} onClose={() => setBlockDialog(false)} PaperProps={{ sx: { borderRadius: 3 } }}>
+                <DialogTitle>¿Bloquear a {selectedConversation?.partner?.name}?</DialogTitle>
+                <DialogContent>
+                    <Typography variant="body2" color="text.secondary">
+                        Ya no van a poder verse ni escribirse. Esta acción no se puede deshacer.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setBlockDialog(false)}>Cancelar</Button>
+                    <Button onClick={handleBlock} color="error" variant="contained" disableElevation>Bloquear</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Report Dialog */}
+            <Dialog open={reportDialog} onClose={() => setReportDialog(false)} PaperProps={{ sx: { borderRadius: 3 } }}>
+                <DialogTitle>Reportar a {selectedConversation?.partner?.name}</DialogTitle>
+                <DialogContent>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        Contanos qué pasó. Si 2 personas reportan al mismo usuario, su cuenta se suspende automáticamente.
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        multiline
+                        rows={3}
+                        placeholder="Describe el motivo del reporte..."
+                        value={reportReason}
+                        onChange={(e) => setReportReason(e.target.value)}
+                        variant="outlined"
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => { setReportDialog(false); setReportReason(''); }}>Cancelar</Button>
+                    <Button onClick={handleReport} color="error" variant="contained" disableElevation disabled={reportReason.length < 5}>Reportar</Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };
