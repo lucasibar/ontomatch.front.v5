@@ -4,7 +4,7 @@ import { type Profile } from '../types';
 
 export const swipesApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
-        getFeed: builder.query<Profile[], { excludeInactive?: boolean, minAge?: number, maxAge?: number, genders?: string[], distanceKm?: number } | void>({
+        getFeed: builder.query<Profile[], { excludeInactive?: boolean, minAge?: number, maxAge?: number, genders?: string[], gendersCustom?: string[], distanceKm?: number } | void>({
             query: (params) => ({
                 url: '/discovery/feed',
                 params: params || {},

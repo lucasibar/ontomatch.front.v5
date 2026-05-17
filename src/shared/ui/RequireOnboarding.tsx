@@ -24,7 +24,7 @@ export const RequireOnboarding = () => {
         u?.birthdate &&
         u?.gender &&
         (u?.looking_for || u?.lookingFor) && // Handle snake/camel case depending on API transform 
-        photoCount >= 0;
+        photoCount >= 1; // Enforce at least 1 photo
 
 
     if (!isProfileComplete) {

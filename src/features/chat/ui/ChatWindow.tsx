@@ -60,7 +60,21 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
         // Listen
         const handleMessage = (msg: any) => {
             if (msg.conversation.id === conversationId) {
-                setMessages((prev) => [...prev, msg]);
+                setMessages((prev) => {
+                    // Replace the optimistic message with the real one, or append if it's new
+                    const isDuplicate = prev.some(p => p.id === msg.id);
+                    if (isDuplicate) return prev;
+
+                    // Find optimistic message matching this body and replace it
+                    const optimisticIndex = prev.findIndex(p => p.isOptimistic && p.body === msg.body && p.senderUserId === msg.senderUserId);
+                    if (optimisticIndex !== -1) {
+                        const newMessages = [...prev];
+                        newMessages[optimisticIndex] = msg;
+                        return newMessages;
+                    }
+                    
+                    return [...prev, msg];
+                });
                 scrollToBottom();
             }
         };
@@ -80,10 +94,24 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
     const handleSend = () => {
         if (!inputText.trim()) return;
 
+        const body = inputText;
+        setInputText('');
+
+        // Optimistic Update
+        const tempMsg = {
+            id: `temp-${Date.now()}`,
+            body: body,
+            senderUserId: user?.id,
+            conversation: { id: conversationId },
+            createdAt: new Date().toISOString(),
+            isOptimistic: true
+        };
+        setMessages(prev => [...prev, tempMsg]);
+        setTimeout(scrollToBottom, 50);
+
         const socket = socketService.getSocket();
         if (socket) {
-            socket.emit('sendMessage', { conversationId, body: inputText });
-            setInputText('');
+            socket.emit('sendMessage', { conversationId, body });
         }
     };
 
@@ -125,14 +153,17 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
                                 <Typography
                                     variant="caption"
                                     sx={{
-                                        display: 'block',
-                                        textAlign: 'right',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-end',
+                                        gap: 0.5,
                                         mt: 0.5,
                                         fontSize: '0.65rem',
                                         color: isMe ? 'rgba(255,255,255,0.6)' : '#71717A'
                                     }}
                                 >
                                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    {isMe && msg.isOptimistic && <span style={{ fontSize: '0.55rem' }}> (Enviando...)</span>}
                                 </Typography>
                             </Box>
                         </Box>

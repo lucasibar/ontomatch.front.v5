@@ -26,6 +26,7 @@ import SchoolIcon from '@mui/icons-material/School';
 import { useGetProfileByIdQuery } from '../../onboarding/api/profileApi';
 import { useBlockUserMutation, useReportUserMutation } from '../api/chatApi';
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
+import { ImageWithFallback } from '../../../shared/ui/ImageWithFallback';
 
 interface PartnerProfileViewProps {
     userId: string | null;
@@ -46,6 +47,7 @@ interface Profile {
     locationText?: string;
     neighborhood?: string;
     coachingSchool?: string;
+    gender_custom?: string;
     photos: { url: string }[];
 }
 
@@ -125,15 +127,15 @@ export const PartnerProfileView: React.FC<PartnerProfileViewProps> = ({ userId, 
 
     const getLookingForLabel = (value: string) => {
         const labels: Record<string, string> = {
-            'sessions_1_on_1': 'Sesiones 1 a 1',
-            'networking': 'Networking profesional',
-            'relationship': 'Pareja',
-            'casual': 'Algo casual'
+            'serious': 'Algo serio',
+            'casual_dating': 'Conocernos y ver qué pasa',
+            'short_term': 'Pasarla bien (Corto plazo)'
         };
         return labels[value] || value;
     };
 
-    const getGenderLabel = (value: string) => {
+    const getGenderLabel = (value: string, custom?: string) => {
+        if (value === 'other' && custom) return custom;
         const labels: Record<string, string> = {
             'male': 'Hombre',
             'female': 'Mujer',
@@ -219,15 +221,19 @@ export const PartnerProfileView: React.FC<PartnerProfileViewProps> = ({ userId, 
                             {/* Gallery Section - Full Screen by default */}
                             <Box sx={{ height: '100%', position: 'relative', bgcolor: 'black', overflow: 'hidden' }}>
                                 <AnimatePresence mode="wait">
-                                    <MotionImg
+                                    <motion.div
                                         key={photoIndex}
-                                        src={photos[photoIndex]?.url}
                                         initial={{ opacity: 0, scale: 1.05 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
                                         transition={{ duration: 0.4, ease: 'easeOut' }}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                    />
+                                        style={{ width: '100%', height: '100%' }}
+                                    >
+                                        <ImageWithFallback 
+                                            src={photos[photoIndex]?.url} 
+                                            alt={`Foto ${photoIndex + 1}`} 
+                                        />
+                                    </motion.div>
                                 </AnimatePresence>
 
                                 {/* Navigation Overlays */}
@@ -323,7 +329,7 @@ export const PartnerProfileView: React.FC<PartnerProfileViewProps> = ({ userId, 
                                 </Typography>
 
                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 4 }}>
-                                    <Chip icon={<PersonIcon />} label={getGenderLabel(profile.gender)} sx={{ borderRadius: 2, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)' }} />
+                                    <Chip icon={<PersonIcon />} label={getGenderLabel(profile.gender, profile.gender_custom)} sx={{ borderRadius: 2, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)' }} />
                                     {profile.height && (
                                         <Chip icon={<HeightIcon />} label={`${profile.height} cm`} sx={{ borderRadius: 2, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)' }} />
                                     )}

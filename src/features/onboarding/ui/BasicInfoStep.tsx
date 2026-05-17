@@ -93,10 +93,9 @@ export const BasicInfoStep = ({ data, onChange }: { data: any, onChange: (d: any
                     label="¿Qué buscas?"
                     onChange={(e) => onChange({ ...data, lookingFor: e.target.value })}
                 >
-                    <MenuItem value="sessions_1_on_1">Sesiones 1 a 1</MenuItem>
-                    <MenuItem value="networking">Networking profesional</MenuItem>
-                    <MenuItem value="relationship">Pareja</MenuItem>
-                    <MenuItem value="casual">Algo casual</MenuItem>
+                    <MenuItem value="serious">Algo serio</MenuItem>
+                    <MenuItem value="casual_dating">Conocernos y ver qué pasa</MenuItem>
+                    <MenuItem value="short_term">Pasarla bien (Corto plazo)</MenuItem>
                 </Select>
             </FormControl>
         </Box>

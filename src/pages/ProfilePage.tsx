@@ -35,11 +35,12 @@ export const ProfilePage = () => {
                 birthdate: p.birthdate, // Format YYYY-MM-DD
                 gender: p.gender,
                 lookingFor: p.looking_for, // API returns snake_case usually, check Profile entity
+                lookingForCustom: p.looking_for_custom,
                 height: p.height,
                 locationText: p.locationText,
                 neighborhood: p.neighborhood,
                 coachingSchool: p.coachingSchool,
-                // Add lookingFor if not already there
+                genderCustom: p.gender_custom,
             });
         }
         if (preferences) {
@@ -48,7 +49,8 @@ export const ProfilePage = () => {
             setPrefData({
                 distanceKm: prefs.distanceKm || 50,
                 ageRange: [prefs.ageMin || 18, prefs.ageMax || 99],
-                gendersAllowed: prefs.gendersAllowed || []
+                gendersAllowed: prefs.gendersAllowed || [],
+                gendersAllowedCustom: prefs.gendersAllowedCustom || []
             });
         }
     }, [profile, preferences]);
@@ -74,7 +76,8 @@ export const ProfilePage = () => {
                 distanceKm: prefData.distanceKm,
                 ageMin: prefData.ageRange[0],
                 ageMax: prefData.ageRange[1],
-                gendersAllowed: prefData.gendersAllowed
+                gendersAllowed: prefData.gendersAllowed,
+                gendersAllowedCustom: prefData.gendersAllowedCustom
             };
 
             await updatePreferences(prefPayload).unwrap();
@@ -143,6 +146,16 @@ export const ProfilePage = () => {
                     </Select>
                 </FormControl>
 
+                {formData.gender === 'other' && (
+                    <TextField
+                        label="Específica tu género"
+                        value={formData.genderCustom || ''}
+                        onChange={(e) => handleChange('genderCustom', e.target.value)}
+                        fullWidth
+                        helperText="Quien busque exactamente esto te encontrará."
+                    />
+                )}
+
                 <FormControl fullWidth>
                     <InputLabel>¿Qué buscas?</InputLabel>
                     <Select
@@ -150,10 +163,9 @@ export const ProfilePage = () => {
                         label="¿Qué buscas?"
                         onChange={(e) => handleChange('lookingFor', e.target.value)}
                     >
-                        <MenuItem value="sessions_1_on_1">Sesiones 1 a 1</MenuItem>
-                        <MenuItem value="networking">Networking profesional</MenuItem>
-                        <MenuItem value="relationship">Pareja</MenuItem>
-                        <MenuItem value="casual">Algo casual</MenuItem>
+                        <MenuItem value="serious">Algo serio</MenuItem>
+                        <MenuItem value="casual_dating">Conocernos y ver qué pasa</MenuItem>
+                        <MenuItem value="short_term">Pasarla bien (Corto plazo)</MenuItem>
                     </Select>
                 </FormControl>
 
@@ -210,8 +222,22 @@ export const ProfilePage = () => {
                         <MenuItem value="male">Hombres</MenuItem>
                         <MenuItem value="female">Mujeres</MenuItem>
                         <MenuItem value="non_binary">No Binarios</MenuItem>
+                        <MenuItem value="other">Otro</MenuItem>
                     </Select>
                 </FormControl>
+
+                {prefData.gendersAllowed?.includes('other') && (
+                    <TextField
+                        label="Especifica qué otros géneros buscas"
+                        value={(prefData.gendersAllowedCustom || []).join(', ')}
+                        onChange={(e) => {
+                            const val = e.target.value.split(',').map(s => s.trim()).filter(s => s);
+                            setPrefData({ ...prefData, gendersAllowedCustom: val });
+                        }}
+                        fullWidth
+                        helperText="Separa con comas. Ej: Gato, Perro"
+                    />
+                )}
 
                 <Box>
                     <Typography gutterBottom>Distancia Máxima: {prefData.distanceKm} km</Typography>

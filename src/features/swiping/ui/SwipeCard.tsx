@@ -4,6 +4,7 @@ import { motion, type PanInfo, useMotionValue, useTransform } from 'framer-motio
 import { Box, Typography, Paper } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { type Profile } from '../types';
+import { ImageWithFallback } from '../../../shared/ui/ImageWithFallback';
 
 interface SwipeCardProps {
     profile: Profile;
@@ -91,17 +92,10 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe: _onSwipe, onInf
                         </Typography>
                     </Box>
                 ) : (
-                    <Box
-                        component="img"
+                    <ImageWithFallback
                         src={currentPhotoUrl}
                         alt={profile.name}
-                        sx={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            pointerEvents: 'none',
-                            display: 'block'
-                        }}
+                        sx={{ pointerEvents: 'none' }}
                     />
                 )}
 

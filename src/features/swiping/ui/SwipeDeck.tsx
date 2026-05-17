@@ -9,8 +9,11 @@ import { useGetFeedQuery, usePostSwipeMutation } from '../api/swipesApi';
 import { useGetPreferencesQuery } from '../../onboarding/api/profileApi';
 import { type Profile } from '../types';
 import { AppEmptyState } from '../../../shared/ui/AppEmptyState';
+import { useDispatch } from 'react-redux';
+import { showToast } from '../../../app/uiSlice';
 
 const SwipeDeck = () => {
+    const dispatch = useDispatch();
     const { data: preferences } = useGetPreferencesQuery(undefined);
 
     const prefs: any = preferences;
@@ -20,7 +23,8 @@ const SwipeDeck = () => {
         minAge: prefs?.ageMin,
         maxAge: prefs?.ageMax,
         distanceKm: prefs?.distanceKm,
-        genders: prefs?.gendersAllowed
+        genders: prefs?.gendersAllowed,
+        gendersCustom: prefs?.gendersAllowedCustom
     }, { skip: !preferences });
     const [currentIndex, setCurrentIndex] = useState(0);
     const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -56,8 +60,7 @@ const SwipeDeck = () => {
             const result = await postSwipe({ targetUserId: profile.user_id, action }).unwrap();
             if (result.matched) {
                 console.log("IT'S A MATCH!", result.matchId);
-                // TODO: Trigger Match Modal globally
-                alert("It's a Match!");
+                dispatch(showToast({ message: '¡Es un Match! 🎉 Ve a tus mensajes para saludar.', severity: 'success' }));
             }
         } catch (error) {
             console.error('Swipe failed', error);
