@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Skeleton, BoxProps } from '@mui/material';
+import { Box, Skeleton, type BoxProps } from '@mui/material';
 
 interface ImageWithFallbackProps extends BoxProps {
     src: string;

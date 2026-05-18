@@ -10,7 +10,7 @@ import { useGetPreferencesQuery } from '../../onboarding/api/profileApi';
 import { type Profile } from '../types';
 import { AppEmptyState } from '../../../shared/ui/AppEmptyState';
 import { useDispatch } from 'react-redux';
-import { showToast } from '../../../app/uiSlice';
+import { showToast } from '../../../shared/model/uiSlice';
 
 const SwipeDeck = () => {
     const dispatch = useDispatch();

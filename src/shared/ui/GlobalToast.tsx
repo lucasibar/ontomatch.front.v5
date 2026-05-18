@@ -1,6 +1,6 @@
 import { Snackbar, Alert } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../app/store';
+import type { RootState } from '../../app/store';
 import { hideToast } from '../model/uiSlice';
 
 export const GlobalToast = () => {

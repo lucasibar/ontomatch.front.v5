@@ -35,7 +35,7 @@ interface PartnerProfileViewProps {
     onActionSuccess?: () => void; // Callback to close chat/feed if blocked
 }
 
-const MotionImg = motion.img;
+
 
 interface Profile {
     name: string;
