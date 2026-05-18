@@ -1,5 +1,4 @@
 import { baseApi } from '../../../shared/api/baseApi';
-// import { Socket } from 'socket.io-client'; // unused
 
 // Types
 export interface Message {
@@ -19,7 +18,7 @@ export interface Conversation {
     lastMessage: {
         body: string;
         createdAt: string;
-        isMe?: boolean;
+        senderId: string;
     } | null;
     updatedAt: string;
 }
@@ -28,6 +27,10 @@ export const chatApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getConversations: builder.query<Conversation[], void>({
             query: () => '/conversations',
+            providesTags: ['Conversation'],
+        }),
+        getSupportConversations: builder.query<Conversation[], void>({
+            query: () => '/conversations/support',
             providesTags: ['Conversation'],
         }),
         getMessages: builder.query<Message[], { conversationId: string }>({
@@ -56,4 +59,10 @@ export const chatApi = baseApi.injectEndpoints({
     }),
 });
 
-export const { useGetConversationsQuery, useGetMessagesQuery, useBlockUserMutation, useReportUserMutation } = chatApi;
+export const {
+    useGetConversationsQuery,
+    useGetSupportConversationsQuery,
+    useGetMessagesQuery,
+    useBlockUserMutation,
+    useReportUserMutation,
+} = chatApi;

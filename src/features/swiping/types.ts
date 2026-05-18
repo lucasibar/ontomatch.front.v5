@@ -1,13 +1,14 @@
 
 export interface Profile {
-    user_id: string; // Map from backend 'user_id'
+    user_id: string;
     name: string;
     birthdate: string;
     distanceKm?: number;
     bio: string;
     photos?: { url: string }[];
     gender?: string;
-    orientation?: string;
     neighborhood?: string;
-    isLiker?: boolean; // Added for debugging/potential UI use
+    coachingSchool?: string;
+    locationText?: string;
+    isLiker?: boolean;
 }

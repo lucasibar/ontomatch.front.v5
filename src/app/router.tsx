@@ -1,10 +1,9 @@
 import { createBrowserRouter, Outlet } from 'react-router-dom';
-import { LoginPage, RegisterPage, ForgotPasswordPage, OnboardingPage, SwipesPage, MatchesPage, ProfilePage, SettingsPage } from '../pages';
+import { LoginPage, RegisterPage, ForgotPasswordPage, OnboardingPage, SwipesPage, MatchesPage, ProfilePage, AdminChatsPage, AdminMetricsPage } from '../pages';
 import { MainLayout } from '../shared/layouts/MainLayout';
 import { ProtectedRoute } from '../shared/ui/ProtectedRoute';
 import { RequireOnboarding } from '../shared/ui/RequireOnboarding';
 import { PublicRoute } from '../shared/ui/PublicRoute';
-
 
 export const router = createBrowserRouter([
     {
@@ -55,8 +54,12 @@ export const router = createBrowserRouter([
                                 element: <ProfilePage />,
                             },
                             {
-                                path: '/settings',
-                                element: <SettingsPage />,
+                                path: '/admin/chats',
+                                element: <AdminChatsPage />,
+                            },
+                            {
+                                path: '/admin/metrics',
+                                element: <AdminMetricsPage />,
                             },
                         ]
                     }
