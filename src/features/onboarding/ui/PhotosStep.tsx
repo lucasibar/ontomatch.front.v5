@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Button, Typography, Card, CardMedia, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
+import { Box, Button, Typography, Card, CardMedia, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, CircularProgress } from '@mui/material';
 import { Delete, ArrowBack, ArrowForward } from '@mui/icons-material';
 import { useLazyGetSignatureQuery, useAddPhotoMutation, useGetMeQuery, useDeletePhotoMutation, useReorderPhotosMutation } from '../api/profileApi';
 import { useDispatch } from 'react-redux';
@@ -10,7 +10,11 @@ export const PhotosStep = () => {
     const dispatch = useDispatch();
 
     if (isLoading) {
-        return <Typography>Loading profile...</Typography>;
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" p={4}>
+                <CircularProgress />
+            </Box>
+        );
     }
     const [triggerSignature] = useLazyGetSignatureQuery();
     const [addPhoto] = useAddPhotoMutation();
@@ -172,6 +176,31 @@ export const PhotosStep = () => {
                     </Box>
                 ))}
 
+                {/* Instant loading placeholder card */}
+                {uploading && (
+                    <Box sx={{ minWidth: '120px', width: '30%', flexShrink: 0, scrollSnapAlign: 'start' }}>
+                        <Card sx={{
+                            aspectRatio: '9/16',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            overflow: 'hidden',
+                            borderRadius: 2,
+                            bgcolor: '#F5F4F0',
+                            border: '1px dashed #D1CFC9',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+                            gap: 2,
+                            p: 1
+                        }}>
+                            <CircularProgress size={28} thickness={5} />
+                            <Typography variant="caption" sx={{ fontSize: '0.7rem', fontWeight: 700, color: 'text.secondary', textAlign: 'center' }}>
+                                Subiendo...
+                            </Typography>
+                        </Card>
+                    </Box>
+                )}
+
                 {/* Upload "Card" */}
                 {sortedPhotos.length < 6 && (
                     <Box sx={{ minWidth: '120px', width: '30%', flexShrink: 0, scrollSnapAlign: 'start' }}>
@@ -197,7 +226,7 @@ export const PhotosStep = () => {
                         >
                             <Box sx={{ fontSize: 32, fontWeight: 300 }}>+</Box>
                             <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
-                                {uploading ? '...' : 'Agregar'}
+                                {uploading ? 'Subiendo...' : 'Agregar'}
                             </Typography>
                             <input type="file" hidden accept="image/*" onChange={handleFileChange} />
                         </Button>

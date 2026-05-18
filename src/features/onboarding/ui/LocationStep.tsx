@@ -19,6 +19,7 @@ export const LocationStep = ({ data, onChange }: { data: any, onChange: (d: any)
             <Typography variant="body2" color="text.secondary">
                 Esto nos ayuda a mostrarte personas cerca tuyo.
             </Typography>
+            
             <Autocomplete
                 options={(results as any[]) || []}
                 getOptionLabel={(option: any) => typeof option === 'string' ? option : `${option.locality}, ${option.province}`}
@@ -44,7 +45,15 @@ export const LocationStep = ({ data, onChange }: { data: any, onChange: (d: any)
                         </li>
                     );
                 }}
-                renderInput={(params) => <TextField {...params} label="Buscar ciudad" fullWidth />}
+                renderInput={(params) => <TextField {...params} label="Buscar localidad / ciudad" fullWidth />}
+            />
+
+            <TextField
+                label="Barrio / Zona (Opcional)"
+                value={data.neighborhood || ''}
+                onChange={(e) => onChange({ ...data, neighborhood: e.target.value })}
+                placeholder="Ej: Palermo, Güemes, etc."
+                fullWidth
             />
         </Box>
     );
