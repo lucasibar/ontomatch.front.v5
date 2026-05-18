@@ -36,8 +36,8 @@ export const MainLayout = () => {
                         value={value}
                         onChange={(_event, newValue) => handleNavigation(newValue)}
                     >
-                        <BottomNavigationAction label="Swipes" icon={<Style />} />
-                        <BottomNavigationAction label="Matches" icon={<Favorite />} />
+                        <BottomNavigationAction label="Descubrir" icon={<Style />} />
+                        <BottomNavigationAction label="Chats" icon={<Favorite />} />
                         <BottomNavigationAction label="Perfil" icon={<Person />} />
                     </BottomNavigation>
                 </Paper>
@@ -50,8 +50,8 @@ export const MainLayout = () => {
                         value={value}
                         onChange={(_event, newValue) => handleNavigation(newValue)}
                     >
-                        <BottomNavigationAction label="Swipes" icon={<Style />} />
-                        <BottomNavigationAction label="Matches" icon={<Favorite />} />
+                        <BottomNavigationAction label="Descubrir" icon={<Style />} />
+                        <BottomNavigationAction label="Chats" icon={<Favorite />} />
                         <BottomNavigationAction label="Perfil" icon={<Person />} />
                     </BottomNavigation>
                 </Paper>

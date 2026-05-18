@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 
 export const LocationStep = ({ data, onChange }: { data: any, onChange: (d: any) => void }) => {
     const [search, setSearch] = useState('');
-    // Simple debounce fallback if hook missing: just pass search directly but might spam
     const [trigger, { data: results, isLoading }] = useLazySearchLocationsQuery();
 
     useEffect(() => {
@@ -15,19 +14,37 @@ export const LocationStep = ({ data, onChange }: { data: any, onChange: (d: any)
     }, [search, trigger]);
 
     return (
-        <Box>
-            <Typography variant="h6" gutterBottom>Where are you based?</Typography>
+        <Box display="flex" flexDirection="column" gap={3}>
+            <Typography variant="h6">¿Dónde estás?</Typography>
+            <Typography variant="body2" color="text.secondary">
+                Esto nos ayuda a mostrarte personas cerca tuyo.
+            </Typography>
             <Autocomplete
                 options={(results as any[]) || []}
-                getOptionLabel={(option: any) => `${option.locality}, ${option.province}`}
+                getOptionLabel={(option: any) => typeof option === 'string' ? option : `${option.locality}, ${option.province}`}
                 loading={isLoading}
                 onInputChange={(_e, newInputValue) => setSearch(newInputValue)}
                 onChange={(_e, value: any) => {
                     if (value) {
-                        onChange({ ...data, locationId: value.id, locationText: value.locality });
+                        onChange({ ...data, locationId: value.id, locationText: `${value.locality}, ${value.province}` });
+                    } else {
+                        onChange({ ...data, locationId: null, locationText: '' });
                     }
                 }}
-                renderInput={(params) => <TextField {...params} label="Search City (Argentina)" fullWidth />}
+                value={data.locationText ? data.locationText : null}
+                isOptionEqualToValue={(option, value) => {
+                    const optionLabel = `${option.locality}, ${option.province}`;
+                    return optionLabel === value || option.id === value?.id;
+                }}
+                renderOption={(props, option) => {
+                    const { key, ...optionProps } = props;
+                    return (
+                        <li key={option.id || key} {...optionProps}>
+                            {option.locality}, {option.province}
+                        </li>
+                    );
+                }}
+                renderInput={(params) => <TextField {...params} label="Buscar ciudad" fullWidth />}
             />
         </Box>
     );

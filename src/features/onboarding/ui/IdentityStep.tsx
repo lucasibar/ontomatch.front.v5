@@ -40,11 +40,12 @@ export const IdentityStep = ({ data, onChange }: { data: any, onChange: (d: any)
                 </RadioGroup>
                 {data.gender === 'other' && (
                     <TextField
-                        label="Especifique su identidad"
+                        label="Especificá tu identidad"
                         value={data.genderCustom || ''}
                         onChange={(e) => onChange({ ...data, genderCustom: e.target.value })}
                         margin="dense"
                         fullWidth
+                        helperText="Ej: Fluido, Terian, etc."
                     />
                 )}
             </FormControl>
@@ -66,6 +67,19 @@ export const IdentityStep = ({ data, onChange }: { data: any, onChange: (d: any)
                         />
                     ))}
                 </FormGroup>
+                {currentGendersAllowed.includes('other') && (
+                    <TextField
+                        label="¿Qué identidad buscás?"
+                        value={(data.gendersAllowedCustom || []).join(', ')}
+                        onChange={(e) => {
+                            const customs = e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean);
+                            onChange({ ...data, gendersAllowedCustom: customs });
+                        }}
+                        margin="dense"
+                        fullWidth
+                        helperText="Separá con comas si buscás más de una. Ej: Fluido, Terian"
+                    />
+                )}
             </FormControl>
         </Box>
     );

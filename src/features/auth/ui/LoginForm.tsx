@@ -40,7 +40,7 @@ export const LoginForm = () => {
                     OntoMatch
                 </Typography>
                 <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 5 }}>
-                    Tu match desde el ser
+                    Citas entre coaches ontológicos
                 </Typography>
 
                 <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
