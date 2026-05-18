@@ -1,8 +1,10 @@
-import { Box, BottomNavigation, BottomNavigationAction, Paper, useMediaQuery, useTheme } from '@mui/material';
+import { Box, BottomNavigation, BottomNavigationAction, Paper, useMediaQuery, useTheme, Badge } from '@mui/material';
 import { Favorite, Person, Style, AdminPanelSettings, BarChart } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useCheckAdminQuery } from '../api/adminApi';
+import { useGetConversationsQuery, useGetSupportConversationsQuery } from '../../features/chat/api/chatApi';
+import { socketService } from '../api/socket';
 
 export const MainLayout = () => {
     const navigate = useNavigate();
@@ -12,6 +14,36 @@ export const MainLayout = () => {
     const [value, setValue] = useState(0);
     const { data: adminData } = useCheckAdminQuery(undefined);
     const isAdmin = adminData?.isAdmin;
+
+    const token = localStorage.getItem('token');
+
+    // Fetch conversation data to compute unread counts
+    const { data: conversations, refetch: refetchConversations } = useGetConversationsQuery(undefined, { skip: !token });
+    const { data: supportConversations, refetch: refetchSupport } = useGetSupportConversationsQuery(undefined, { skip: !token || !isAdmin });
+
+    // Global real-time socket connection for notification badges
+    useEffect(() => {
+        if (!token) return;
+
+        const socket = socketService.connect(token);
+        if (socket) {
+            // Listen for any incoming messages in real-time to update counts immediately
+            socket.on('newMessageNotification', () => {
+                refetchConversations();
+                if (isAdmin) refetchSupport();
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.off('newMessageNotification');
+            }
+        };
+    }, [token, isAdmin, refetchConversations, refetchSupport]);
+
+    // Compute unread totals
+    const unreadChats = conversations?.reduce((sum, c) => sum + (c.unreadCount || 0), 0) || 0;
+    const unreadSupport = supportConversations?.reduce((sum, c) => sum + (c.unreadCount || 0), 0) || 0;
 
     // Sync state with URL location
     useEffect(() => {
@@ -44,14 +76,30 @@ export const MainLayout = () => {
                         onChange={(_event, newValue) => handleNavigation(newValue)}
                     >
                         <BottomNavigationAction label="Descubrir" icon={<Style />} />
-                        <BottomNavigationAction label="Chats" icon={<Favorite />} />
+                        <BottomNavigationAction
+                            label="Chats"
+                            icon={
+                                <Badge badgeContent={unreadChats} color="error" max={99}>
+                                    <Favorite />
+                                </Badge>
+                            }
+                        />
                         <BottomNavigationAction label="Perfil" icon={<Person />} />
-                        {isAdmin && <BottomNavigationAction label="Soporte" icon={<AdminPanelSettings />} />}
+                        {isAdmin && (
+                            <BottomNavigationAction
+                                label="Soporte"
+                                icon={
+                                    <Badge badgeContent={unreadSupport} color="error" max={99}>
+                                        <AdminPanelSettings />
+                                    </Badge>
+                                }
+                            />
+                        )}
                         {isAdmin && <BottomNavigationAction label="Métricas" icon={<BarChart />} />}
                     </BottomNavigation>
                 </Paper>
             ) : (
-                /* Desktop Sidenav / Topnav */
+                /* Desktop Top Navigation */
                 <Paper sx={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 }} elevation={3}>
                     <BottomNavigation
                         showLabels
@@ -59,9 +107,25 @@ export const MainLayout = () => {
                         onChange={(_event, newValue) => handleNavigation(newValue)}
                     >
                         <BottomNavigationAction label="Descubrir" icon={<Style />} />
-                        <BottomNavigationAction label="Chats" icon={<Favorite />} />
+                        <BottomNavigationAction
+                            label="Chats"
+                            icon={
+                                <Badge badgeContent={unreadChats} color="error" max={99}>
+                                    <Favorite />
+                                </Badge>
+                            }
+                        />
                         <BottomNavigationAction label="Perfil" icon={<Person />} />
-                        {isAdmin && <BottomNavigationAction label="Soporte" icon={<AdminPanelSettings />} />}
+                        {isAdmin && (
+                            <BottomNavigationAction
+                                label="Soporte"
+                                icon={
+                                    <Badge badgeContent={unreadSupport} color="error" max={99}>
+                                        <AdminPanelSettings />
+                                    </Badge>
+                                }
+                            />
+                        )}
                         {isAdmin && <BottomNavigationAction label="Métricas" icon={<BarChart />} />}
                     </BottomNavigation>
                 </Paper>

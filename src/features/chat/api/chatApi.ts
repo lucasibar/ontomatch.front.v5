@@ -14,6 +14,7 @@ export interface Conversation {
         id: string;
         name: string;
         photoUrl: string | null;
+        isSystemSupport?: boolean;
     };
     lastMessage: {
         body: string;
@@ -21,6 +22,8 @@ export interface Conversation {
         senderId: string;
     } | null;
     updatedAt: string;
+    isSupportChat?: boolean;
+    unreadCount?: number;
 }
 
 export const chatApi = baseApi.injectEndpoints({
@@ -39,6 +42,13 @@ export const chatApi = baseApi.injectEndpoints({
         }),
         sendMessage: builder.mutation<void, { conversationId: string; body: string }>({
             queryFn: () => ({ data: undefined }),
+        }),
+        markAsRead: builder.mutation<void, { conversationId: string }>({
+            query: ({ conversationId }) => ({
+                url: `/conversations/${conversationId}/read`,
+                method: 'PATCH',
+            }),
+            invalidatesTags: (_result, _error, arg) => ['Conversation', { type: 'Conversation', id: arg.conversationId }],
         }),
         blockUser: builder.mutation<void, { blockedId: string }>({
             query: (body) => ({
@@ -65,4 +75,5 @@ export const {
     useGetMessagesQuery,
     useBlockUserMutation,
     useReportUserMutation,
+    useMarkAsReadMutation,
 } = chatApi;

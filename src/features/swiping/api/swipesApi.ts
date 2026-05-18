@@ -1,4 +1,3 @@
-
 import { baseApi } from '../../../shared/api/baseApi';
 import { type Profile } from '../types';
 
@@ -12,14 +11,12 @@ export const swipesApi = baseApi.injectEndpoints({
             providesTags: ['Profile'],
             transformResponse: (response: { data: Profile[], meta: any }) => response.data,
         }),
-        postSwipe: builder.mutation<{ matched: boolean, matchId?: string }, { targetUserId: string, action: 'LIKE' | 'PASS' }>({
+        postSwipe: builder.mutation<{ matched: boolean, matchId?: string, conversationId?: string }, { targetUserId: string, action: 'LIKE' | 'PASS' }>({
             query: ({ targetUserId, action }) => ({
                 url: '/swipes',
                 method: 'POST',
                 body: { targetUserId, action },
             }),
-            // Don't invalidate 'Profile' to avoid refetching the whole feed immediately?
-            // Usually we just remove the card locally.
         }),
     }),
 });

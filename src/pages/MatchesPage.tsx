@@ -34,14 +34,20 @@ export const MatchesPage = () => {
     const selectedConversation = conversations?.find(c => c.id === selectedConversationId);
     const partnerId = selectedConversation?.partner?.id;
 
-    // Initialize selection from navigation state if available
+    // Initialize selection from navigation state or query params if available
     useEffect(() => {
         if (location.state && location.state.conversationId) {
             setSelectedConversationId(location.state.conversationId);
-            // Clear state so back button works expectedly
             navigate(location.pathname, { replace: true, state: {} });
+        } else {
+            const params = new URLSearchParams(location.search);
+            const convId = params.get('conversationId');
+            if (convId) {
+                setSelectedConversationId(convId);
+                navigate(location.pathname, { replace: true });
+            }
         }
-    }, [location.state, navigate, location.pathname]);
+    }, [location.state, location.search, navigate, location.pathname]);
 
     const handleSelectConversation = (id: string) => {
         setSelectedConversationId(id);
@@ -151,14 +157,34 @@ export const MatchesPage = () => {
                                         <ListItemText
                                             primary={
                                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <Typography variant="subtitle1" fontWeight="500" color="text.primary">
+                                                    <Typography variant="subtitle1" fontWeight={conv.unreadCount ? "700" : "500"} color="text.primary">
                                                         {conv.partner.name}
                                                     </Typography>
-                                                    {timeString && (
-                                                        <Typography variant="caption" sx={{ color: 'text.secondary', opacity: 0.8 }}>
-                                                            {timeString}
-                                                        </Typography>
-                                                    )}
+                                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+                                                        {timeString && (
+                                                            <Typography variant="caption" sx={{ color: conv.unreadCount ? '#ea00d9' : 'text.secondary', fontWeight: conv.unreadCount ? 'bold' : 'normal', opacity: 0.8 }}>
+                                                                {timeString}
+                                                            </Typography>
+                                                        )}
+                                                        {conv.unreadCount !== undefined && conv.unreadCount > 0 && (
+                                                            <Box sx={{
+                                                                minWidth: 18,
+                                                                height: 18,
+                                                                borderRadius: 9,
+                                                                bgcolor: '#ea00d9',
+                                                                color: 'white',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                fontSize: '0.65rem',
+                                                                fontWeight: 'bold',
+                                                                px: 0.5,
+                                                                boxShadow: '0 2px 5px rgba(234,0,217,0.3)'
+                                                            }}>
+                                                                {conv.unreadCount}
+                                                            </Box>
+                                                        )}
+                                                    </Box>
                                                 </Box>
                                             }
                                             secondary={
