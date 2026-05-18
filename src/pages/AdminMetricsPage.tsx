@@ -48,7 +48,7 @@ export const AdminMetricsPage = () => {
     const getGenderLabel = (g: string) => {
         if (g === 'male') return 'Hombres';
         if (g === 'female') return 'Mujeres';
-        if (g === 'non_binary') return 'No Binario';
+        if (g === 'non_binary') return 'No binario';
         return 'Otro';
     };
 
@@ -68,7 +68,7 @@ export const AdminMetricsPage = () => {
                 {/* Grid stats */}
                 <Grid container spacing={3} sx={{ mb: 6 }}>
                     {cards.map((card, idx) => (
-                        <Grid item xs={12} sm={6} md={4} key={idx}>
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={idx}>
                             <Card sx={{
                                 borderRadius: 4,
                                 border: 'none',
@@ -98,7 +98,7 @@ export const AdminMetricsPage = () => {
 
                 <Grid container spacing={4} sx={{ mb: 4 }}>
                     {/* Activity last 7 days */}
-                    <Grid item xs={12} md={7}>
+                    <Grid size={{ xs: 12, md: 7 }}>
                         <Paper sx={{ p: 4, borderRadius: 4, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)', border: '1px solid #EAE9E6', height: '100%' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
                                 <TrendingUpIcon sx={{ color: 'primary.main', fontSize: 28 }} />
@@ -134,7 +134,7 @@ export const AdminMetricsPage = () => {
                     </Grid>
 
                     {/* Conversion Rates */}
-                    <Grid item xs={12} md={5}>
+                    <Grid size={{ xs: 12, md: 5 }}>
                         <Paper sx={{ p: 4, borderRadius: 4, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)', border: '1px solid #EAE9E6', height: '100%' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
                                 <SpeedIcon sx={{ color: 'primary.main', fontSize: 28 }} />
@@ -182,7 +182,7 @@ export const AdminMetricsPage = () => {
                 {/* Demographics & Special Coaching Insights */}
                 <Grid container spacing={4}>
                     {/* Demographics */}
-                    <Grid item xs={12} md={4}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <Paper sx={{ p: 4, borderRadius: 4, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)', border: '1px solid #EAE9E6', height: '100%' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
                                 <CakeIcon sx={{ color: 'primary.main', fontSize: 26 }} />
@@ -222,7 +222,7 @@ export const AdminMetricsPage = () => {
                     </Grid>
 
                     {/* Top Schools */}
-                    <Grid item xs={12} md={4}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <Paper sx={{ p: 4, borderRadius: 4, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)', border: '1px solid #EAE9E6', height: '100%' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
                                 <SchoolIcon sx={{ color: 'primary.main', fontSize: 26 }} />
@@ -234,7 +234,7 @@ export const AdminMetricsPage = () => {
 
                             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                                 Escuelas de Coaching Ontológico más elegidas por los coaches registrados:
-                              </Typography>
+                            </Typography>
 
                             <List disablePadding>
                                 {demographics.topSchools?.length === 0 ? (
@@ -259,7 +259,7 @@ export const AdminMetricsPage = () => {
                     </Grid>
 
                     {/* Top Localities */}
-                    <Grid item xs={12} md={4}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                         <Paper sx={{ p: 4, borderRadius: 4, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)', border: '1px solid #EAE9E6', height: '100%' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
                                 <LocationOnIcon sx={{ color: 'primary.main', fontSize: 26 }} />
