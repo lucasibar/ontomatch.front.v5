@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Stepper, Step, StepLabel, Button, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { BasicInfoStep } from './BasicInfoStep';
 import { IdentityStep } from './IdentityStep';
 import { BioStep } from './BioStep';
 import { LocationStep } from './LocationStep';
 import { PreferencesStep } from './PreferencesStep';
 import { PhotosStep } from './PhotosStep';
-import { useUpdateProfileMutation, useGetMeQuery, useUpdatePreferencesMutation } from '../api/profileApi';
+import { useUpdateProfileMutation, useGetMeQuery, useUpdatePreferencesMutation, useGetPreferencesQuery } from '../api/profileApi';
+import { showToast } from '../../../shared/model/uiSlice';
 
 const steps = ['Datos Personales', 'Identidad', 'Sobre mí', 'Ubicación', 'Preferencias', 'Fotos'];
 
@@ -17,7 +19,52 @@ export const OnboardingStepper = () => {
     const [updateProfile, { isLoading }] = useUpdateProfileMutation();
     const [updatePreferences] = useUpdatePreferencesMutation();
     const { data: profile } = useGetMeQuery(undefined);
+    const { data: preferences } = useGetPreferencesQuery(undefined);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    // Preload existing data if user already has a profile
+    useEffect(() => {
+        if (profile) {
+            const p: any = profile;
+            const existingData: any = {};
+            
+            if (p.name && p.name !== 'New User') existingData.name = p.name;
+            if (p.birthdate) {
+                const d = new Date(p.birthdate);
+                if (!isNaN(d.getTime())) {
+                    existingData.birthdate = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+                }
+            }
+            if (p.height) existingData.height = p.height;
+            if (p.gender) existingData.gender = p.gender;
+            if (p.genderCustom) existingData.genderCustom = p.genderCustom;
+            if (p.bio) existingData.bio = p.bio;
+            if (p.locationText) existingData.locationText = p.locationText;
+            if (p.neighborhood) existingData.neighborhood = p.neighborhood;
+            if (p.coachingSchool || p.coaching_school) existingData.coachingSchool = p.coachingSchool || p.coaching_school;
+            if (p.looking_for || p.lookingFor) existingData.lookingFor = p.looking_for || p.lookingFor;
+
+            // Only set if we actually have data to preload
+            if (Object.keys(existingData).length > 0) {
+                setFormData((prev: any) => ({ ...existingData, ...prev }));
+            }
+        }
+    }, [profile]);
+
+    // Preload preferences
+    useEffect(() => {
+        if (preferences) {
+            const prefs: any = preferences;
+            setFormData((prev: any) => ({
+                ...prev,
+                distanceKm: prev.distanceKm || prefs.distanceKm,
+                ageRange: prev.ageRange || [prefs.ageMin || 18, prefs.ageMax || 99],
+                gendersAllowed: prev.gendersAllowed || prefs.gendersAllowed || [],
+                gendersAllowedCustom: prev.gendersAllowedCustom || prefs.gendersAllowedCustom || [],
+            }));
+        }
+    }, [preferences]);
 
     const formatDateForApi = (dateStr: string) => {
         if (!dateStr) return null;
@@ -39,11 +86,15 @@ export const OnboardingStepper = () => {
     };
 
     const handleNext = async () => {
-        // Validation logic per step could go here
+        // Validation logic per step
         if (activeStep === 0) {
             const formattedDate = formatDateForApi(formData.birthdate);
             if (!formData.birthdate || !formattedDate) {
-                alert('Por favor ingresa una fecha de nacimiento válida (DD/MM/YYYY)');
+                dispatch(showToast({ message: 'Por favor ingresá una fecha de nacimiento válida (DD/MM/YYYY)', severity: 'warning' }));
+                return;
+            }
+            if (!formData.name || formData.name.trim().length < 2) {
+                dispatch(showToast({ message: 'Por favor ingresá tu nombre', severity: 'warning' }));
                 return;
             }
         }
@@ -53,7 +104,7 @@ export const OnboardingStepper = () => {
             const p: any = profile;
             const photoCount = p?.user?.photos?.length || 0;
             if (photoCount < 3) {
-                alert(`Debes subir al menos 3 fotos. Tienes ${photoCount}.`);
+                dispatch(showToast({ message: `Necesitás al menos 3 fotos. Tenés ${photoCount}.`, severity: 'warning' }));
                 return;
             }
         }
@@ -69,11 +120,10 @@ export const OnboardingStepper = () => {
             const birthdateISO = formatDateForApi(formData.birthdate);
 
             if (!birthdateISO) {
-                alert('Error en la fecha de nacimiento. Verifique el formato DD/MM/YYYY');
+                dispatch(showToast({ message: 'Error en la fecha de nacimiento. Verificá el formato DD/MM/YYYY', severity: 'error' }));
                 return;
             }
 
-            console.log('Onboarding: Sending Profile Payload...');
             const profilePayload = {
                 name: formData.name,
                 birthdate: birthdateISO,
@@ -88,12 +138,9 @@ export const OnboardingStepper = () => {
                 lookingFor: formData.lookingFor,
                 isOnboarded: true,
             };
-            console.log('Payload:', profilePayload);
             await updateProfile(profilePayload).unwrap();
 
             // 2. Save Preferences
-            // 2. Save Preferences (Force save with defaults if missing)
-            console.log('Onboarding: Saving Preferences...');
             await updatePreferences({
                 distanceKm: formData.distanceKm || 50,
                 ageMin: formData.ageRange?.[0] || 18,
@@ -101,10 +148,11 @@ export const OnboardingStepper = () => {
                 gendersAllowed: formData.gendersAllowed || []
             }).unwrap();
 
+            dispatch(showToast({ message: '¡Perfil completado! Bienvenido a OntoMatch 🎉', severity: 'success' }));
             navigate('/'); // Go to feed
         } catch (err) {
             console.error(err);
-            alert('Failed to save profile. Please try again.');
+            dispatch(showToast({ message: 'Error al guardar el perfil. Intentá de nuevo.', severity: 'error' }));
         }
     };
 

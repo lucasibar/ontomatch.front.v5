@@ -1,5 +1,5 @@
 import { createBrowserRouter, Outlet } from 'react-router-dom';
-import { LoginPage, RegisterPage, OnboardingPage, SwipesPage, MatchesPage, ProfilePage, SettingsPage } from '../pages';
+import { LoginPage, RegisterPage, ForgotPasswordPage, OnboardingPage, SwipesPage, MatchesPage, ProfilePage, SettingsPage } from '../pages';
 import { MainLayout } from '../shared/layouts/MainLayout';
 import { ProtectedRoute } from '../shared/ui/ProtectedRoute';
 import { RequireOnboarding } from '../shared/ui/RequireOnboarding';
@@ -14,6 +14,10 @@ export const router = createBrowserRouter([
     {
         path: '/register',
         element: <PublicRoute><RegisterPage /></PublicRoute>,
+    },
+    {
+        path: '/forgot-password',
+        element: <PublicRoute><ForgotPasswordPage /></PublicRoute>,
     },
     // Protected Routes (require Auth)
     {

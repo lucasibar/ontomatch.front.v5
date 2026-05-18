@@ -74,6 +74,14 @@ export const LoginForm = () => {
                         helperText={isPasswordError ? 'Contraseña incorrecta' : ''}
                     />
 
+                    <Box sx={{ textAlign: 'right', mt: 1, mb: 1 }}>
+                        <Typography variant="body2">
+                            <Link to="/forgot-password" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 500 }}>
+                                ¿Olvidaste tu contraseña?
+                            </Link>
+                        </Typography>
+                    </Box>
+
                     <Button
                         type="submit"
                         fullWidth

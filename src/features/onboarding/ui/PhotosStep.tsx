@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { Box, Button, Typography, Card, CardMedia, IconButton } from '@mui/material';
+import { Box, Button, Typography, Card, CardMedia, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { Delete, ArrowBack, ArrowForward } from '@mui/icons-material';
 import { useLazyGetSignatureQuery, useAddPhotoMutation, useGetMeQuery, useDeletePhotoMutation, useReorderPhotosMutation } from '../api/profileApi';
+import { useDispatch } from 'react-redux';
+import { showToast } from '../../../shared/model/uiSlice';
 
 export const PhotosStep = () => {
     const { data: profile, isLoading } = useGetMeQuery(undefined);
+    const dispatch = useDispatch();
 
     if (isLoading) {
         return <Typography>Loading profile...</Typography>;
@@ -14,6 +17,8 @@ export const PhotosStep = () => {
     const [deletePhoto] = useDeletePhotoMutation();
     const [reorderPhotos] = useReorderPhotosMutation();
     const [uploading, setUploading] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -41,23 +46,34 @@ export const PhotosStep = () => {
 
             // 3. Register with Backend
             await addPhoto({ url: cloudData.secure_url, publicId: cloudData.public_id }).unwrap();
-            alert('Photo Uploaded!');
+            dispatch(showToast({ message: '¡Foto subida con éxito! 📸', severity: 'success' }));
         } catch (err) {
             console.error(err);
-            alert('Upload failed');
+            dispatch(showToast({ message: 'Error al subir la foto. Intentá de nuevo.', severity: 'error' }));
         } finally {
             setUploading(false);
         }
     };
 
-    const handleDelete = async (photoId: string) => {
+    const handleDeleteRequest = (photoId: string) => {
         if (sortedPhotos.length <= 3) {
-            alert('Debes mantener al menos 3 fotos.');
+            dispatch(showToast({ message: 'Debes mantener al menos 3 fotos.', severity: 'warning' }));
             return;
         }
+        setPhotoToDelete(photoId);
+        setDeleteDialogOpen(true);
+    };
 
-        if (confirm('Are you sure you want to delete this photo?')) {
-            await deletePhoto(photoId).unwrap();
+    const handleDeleteConfirm = async () => {
+        if (!photoToDelete) return;
+        try {
+            await deletePhoto(photoToDelete).unwrap();
+            dispatch(showToast({ message: 'Foto eliminada.', severity: 'info' }));
+        } catch (err) {
+            dispatch(showToast({ message: 'Error al eliminar la foto.', severity: 'error' }));
+        } finally {
+            setDeleteDialogOpen(false);
+            setPhotoToDelete(null);
         }
     };
 
@@ -138,7 +154,7 @@ export const PhotosStep = () => {
                                 </IconButton>
                                 <IconButton
                                     size="small"
-                                    onClick={() => handleDelete(photo.id)}
+                                    onClick={() => handleDeleteRequest(photo.id)}
                                     color="error"
                                 >
                                     <Delete fontSize="small" />
@@ -188,6 +204,22 @@ export const PhotosStep = () => {
                     </Box>
                 )}
             </Box>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+                <DialogTitle>Eliminar foto</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        ¿Estás seguro de que querés eliminar esta foto?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeleteDialogOpen(false)}>Cancelar</Button>
+                    <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+                        Eliminar
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 

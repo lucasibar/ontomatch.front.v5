@@ -57,6 +57,12 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
         // Join Room
         socket.emit('joinConversation', conversationId);
 
+        // Re-join on reconnect (network drop recovery)
+        const handleReconnect = () => {
+            socket.emit('joinConversation', conversationId);
+        };
+        socket.on('reconnect', handleReconnect);
+
         // Listen
         const handleMessage = (msg: any) => {
             if (msg.conversation.id === conversationId) {
@@ -84,6 +90,7 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
         return () => {
             socket.emit('leaveConversation', conversationId);
             socket.off('receiveMessage', handleMessage);
+            socket.off('reconnect', handleReconnect);
         };
     }, [conversationId, token]);
 
@@ -218,7 +225,7 @@ export const ChatWindow = ({ conversationId }: { conversationId: string }) => {
                     placeholder="Escribe un mensaje..."
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                     InputProps={{
                         disableUnderline: true,
                         sx: {
