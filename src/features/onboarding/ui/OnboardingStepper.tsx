@@ -68,7 +68,6 @@ export const OnboardingStepper = () => {
 
     const formatDateForApi = (dateStr: string) => {
         if (!dateStr) return null;
-        // Check for DD/MM/YYYY format
         const ddmmyyyy = /^(\d{2})\/(\d{2})\/(\d{4})$/;
         const match = dateStr.match(ddmmyyyy);
 
@@ -77,7 +76,6 @@ export const OnboardingStepper = () => {
             return new Date(`${year}-${month}-${day}`).toISOString();
         }
 
-        // Fallback for valid ISO strings or other formats (if any)
         const date = new Date(dateStr);
         if (!isNaN(date.getTime())) {
             return date.toISOString();
@@ -93,8 +91,58 @@ export const OnboardingStepper = () => {
                 dispatch(showToast({ message: 'Por favor ingresá una fecha de nacimiento válida (DD/MM/YYYY)', severity: 'warning' }));
                 return;
             }
+
+            // Calculate age and ensure >= 18
+            const birthObj = new Date(formattedDate);
+            const today = new Date();
+            let age = today.getFullYear() - birthObj.getFullYear();
+            const m = today.getMonth() - birthObj.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthObj.getDate())) {
+                age--;
+            }
+            if (age < 18) {
+                dispatch(showToast({ message: 'Debés tener al menos 18 años para registrarte en OntoMatch', severity: 'warning' }));
+                return;
+            }
+
             if (!formData.name || formData.name.trim().length < 2) {
                 dispatch(showToast({ message: 'Por favor ingresá tu nombre', severity: 'warning' }));
+                return;
+            }
+        }
+
+        if (activeStep === 1) {
+            // Identity Validation
+            if (!formData.gender) {
+                dispatch(showToast({ message: 'Por favor seleccioná tu identidad de género', severity: 'warning' }));
+                return;
+            }
+            if (formData.gender === 'other' && (!formData.genderCustom || formData.genderCustom.trim().length === 0)) {
+                dispatch(showToast({ message: 'Por favor especificá tu identidad de género alternativa', severity: 'warning' }));
+                return;
+            }
+            if (!formData.gendersAllowed || formData.gendersAllowed.length === 0) {
+                dispatch(showToast({ message: 'Por favor seleccioná al menos un género que buscás', severity: 'warning' }));
+                return;
+            }
+        }
+
+        if (activeStep === 2) {
+            // Bio & Coaching Credentials Validation
+            if (!formData.bio || formData.bio.trim().length < 20) {
+                dispatch(showToast({ message: 'Por favor escribí una breve descripción de al menos 20 caracteres', severity: 'warning' }));
+                return;
+            }
+            if (!formData.coachingSchool || formData.coachingSchool.trim().length === 0) {
+                dispatch(showToast({ message: 'Por favor escribí o seleccioná tu escuela de coaching ontológico', severity: 'warning' }));
+                return;
+            }
+        }
+
+        if (activeStep === 3) {
+            // Location Validation
+            if (!formData.locationText) {
+                dispatch(showToast({ message: 'Por favor buscá y seleccioná tu ubicación / localidad', severity: 'warning' }));
                 return;
             }
         }
@@ -104,7 +152,7 @@ export const OnboardingStepper = () => {
             const p: any = profile;
             const photoCount = p?.user?.photos?.length || 0;
             if (photoCount < 3) {
-                dispatch(showToast({ message: `Necesitás al menos 3 fotos. Tenés ${photoCount}.`, severity: 'warning' }));
+                dispatch(showToast({ message: `Necesitás subir al menos 3 fotos de perfil. Actualmente tenés ${photoCount}.`, severity: 'warning' }));
                 return;
             }
         }
@@ -114,9 +162,8 @@ export const OnboardingStepper = () => {
             return;
         }
 
-        // Final Step: Finish
+        // Final Step: Submit onboarding
         try {
-            // 1. Save Profile Data
             const birthdateISO = formatDateForApi(formData.birthdate);
 
             if (!birthdateISO) {
@@ -140,7 +187,6 @@ export const OnboardingStepper = () => {
             };
             await updateProfile(profilePayload).unwrap();
 
-            // 2. Save Preferences
             await updatePreferences({
                 distanceKm: formData.distanceKm || 50,
                 ageMin: formData.ageRange?.[0] || 18,
@@ -149,7 +195,7 @@ export const OnboardingStepper = () => {
             }).unwrap();
 
             dispatch(showToast({ message: '¡Perfil completado! Bienvenido a OntoMatch 🎉', severity: 'success' }));
-            navigate('/'); // Go to feed
+            navigate('/');
         } catch (err) {
             console.error(err);
             dispatch(showToast({ message: 'Error al guardar el perfil. Intentá de nuevo.', severity: 'error' }));
