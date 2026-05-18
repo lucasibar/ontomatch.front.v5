@@ -53,7 +53,7 @@ export interface MetricsResponse {
 }
 
 export const adminApi = baseApi.injectEndpoints({
-    endpoints: (builder: any) => ({
+    endpoints: (builder) => ({
         checkAdmin: builder.query<{ isAdmin: boolean }, void>({
             query: () => '/admin/check',
         }),
