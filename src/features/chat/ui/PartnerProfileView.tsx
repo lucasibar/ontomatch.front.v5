@@ -27,6 +27,7 @@ import { useGetProfileByIdQuery } from '../../onboarding/api/profileApi';
 import { useBlockUserMutation, useReportUserMutation } from '../api/chatApi';
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
 import { ImageWithFallback } from '../../../shared/ui/ImageWithFallback';
+import { calculateAge } from '../../../shared/utils/date';
 
 interface PartnerProfileViewProps {
     userId: string | null;
@@ -112,7 +113,7 @@ export const PartnerProfileView: React.FC<PartnerProfileViewProps> = ({ userId, 
         );
     }
 
-    const age = new Date().getFullYear() - new Date(profile.birthdate).getFullYear();
+    const age = calculateAge(profile.birthdate);
     const photos = profile.photos || [];
 
     const handleNextPhoto = (e: React.MouseEvent) => {

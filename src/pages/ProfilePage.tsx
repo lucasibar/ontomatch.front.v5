@@ -35,7 +35,6 @@ export const ProfilePage = () => {
                 birthdate: p.birthdate, // Format YYYY-MM-DD
                 gender: p.gender,
                 lookingFor: p.looking_for, // API returns snake_case usually, check Profile entity
-                lookingForCustom: p.looking_for_custom,
                 height: p.height,
                 locationText: p.locationText,
                 neighborhood: p.neighborhood,
@@ -50,7 +49,8 @@ export const ProfilePage = () => {
                 distanceKm: prefs.distanceKm || 50,
                 ageRange: [prefs.ageMin || 18, prefs.ageMax || 99],
                 gendersAllowed: prefs.gendersAllowed || [],
-                gendersAllowedCustom: prefs.gendersAllowedCustom || []
+                gendersAllowedCustom: prefs.gendersAllowedCustom || [],
+                gendersAllowedCustomStr: (prefs.gendersAllowedCustom || []).join(', '),
             });
         }
     }, [profile, preferences]);
@@ -72,12 +72,16 @@ export const ProfilePage = () => {
         try {
             await updateProfile(formData).unwrap();
 
+            const customs = prefData.gendersAllowedCustomStr
+                ? prefData.gendersAllowedCustomStr.split(',').map((s: string) => s.trim()).filter(Boolean)
+                : (prefData.gendersAllowedCustom || []);
+
             const prefPayload = {
                 distanceKm: prefData.distanceKm,
                 ageMin: prefData.ageRange[0],
                 ageMax: prefData.ageRange[1],
                 gendersAllowed: prefData.gendersAllowed,
-                gendersAllowedCustom: prefData.gendersAllowedCustom
+                gendersAllowedCustom: customs
             };
 
             await updatePreferences(prefPayload).unwrap();
@@ -229,11 +233,11 @@ export const ProfilePage = () => {
                 {prefData.gendersAllowed?.includes('other') && (
                     <TextField
                         label="Especifica qué otros géneros buscas"
-                        value={(prefData.gendersAllowedCustom || []).join(', ')}
-                        onChange={(e) => {
-                            const val = e.target.value.split(',').map(s => s.trim()).filter(s => s);
-                            setPrefData({ ...prefData, gendersAllowedCustom: val });
-                        }}
+                        value={prefData.gendersAllowedCustomStr || ''}
+                        onChange={(e) => setPrefData({ 
+                            ...prefData, 
+                            gendersAllowedCustomStr: e.target.value 
+                        })}
                         fullWidth
                         helperText="Separa con comas. Ej: Gato, Perro"
                     />

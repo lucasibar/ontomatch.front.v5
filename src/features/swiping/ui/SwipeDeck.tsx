@@ -7,11 +7,78 @@ import SparklesIcon from '@mui/icons-material/AutoAwesome';
 import SwipeCard from './SwipeCard';
 import { AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useGetFeedQuery, usePostSwipeMutation } from '../api/swipesApi';
+import { useLazyGetFeedQuery, usePostSwipeMutation } from '../api/swipesApi';
 import { useGetPreferencesQuery, useGetMeQuery } from '../../onboarding/api/profileApi';
 import { type Profile } from '../types';
 import { AppEmptyState } from '../../../shared/ui/AppEmptyState';
 import { getOptimizedCloudinaryUrl } from '../../../shared/ui/ImageWithFallback';
+
+const triggerConfetti = () => {
+    if (typeof window === 'undefined') return;
+    const canvas = document.createElement('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = '99999';
+    document.body.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const colors = ['#ea00d9', '#711c91', '#00b8ff', '#ffb800', '#ff4b4b'];
+    const confettiCount = 120;
+    const confetti: any[] = [];
+
+    for (let i = 0; i < confettiCount; i++) {
+        confetti.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            r: Math.random() * 6 + 4,
+            d: Math.random() * confettiCount,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            tilt: Math.random() * 10 - 5,
+            tiltAngleIncremental: Math.random() * 0.07 + 0.02,
+            tiltAngle: 0
+        });
+    }
+
+    let frames = 0;
+
+    const draw = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        frames++;
+
+        let active = false;
+        confetti.forEach((p) => {
+            p.tiltAngle += p.tiltAngleIncremental;
+            p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+            p.x += Math.sin(p.tiltAngle);
+            p.tilt = Math.sin(p.tiltAngle - p.r / 2) * 15;
+
+            if (p.y < canvas.height) {
+                active = true;
+            }
+
+            ctx.beginPath();
+            ctx.lineWidth = p.r;
+            ctx.strokeStyle = p.color;
+            ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+            ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
+            ctx.stroke();
+        });
+
+        if (active && frames < 180) { // Stop after ~3 seconds
+            requestAnimationFrame(draw);
+        } else {
+            canvas.remove();
+        }
+    };
+
+    draw();
+};
 
 const SwipeDeck = () => {
     const navigate = useNavigate();
@@ -20,36 +87,50 @@ const SwipeDeck = () => {
 
     const prefs: any = preferences;
 
-    const { data: feed, isLoading, refetch } = useGetFeedQuery({
-        excludeInactive: true,
-        minAge: prefs?.ageMin,
-        maxAge: prefs?.ageMax,
-        distanceKm: prefs?.distanceKm,
-        genders: prefs?.gendersAllowed,
-        gendersCustom: prefs?.gendersAllowedCustom
-    }, { skip: !preferences });
+    const [triggerGetFeed, { isFetching: isFetchingMore }] = useLazyGetFeedQuery();
+    const [isLoading, setIsLoading] = useState(true);
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [postSwipe] = usePostSwipeMutation();
     const [finished, setFinished] = useState(false);
 
+    const feedParams = {
+        excludeInactive: true,
+        minAge: prefs?.ageMin,
+        maxAge: prefs?.ageMax,
+        distanceKm: prefs?.distanceKm,
+        genders: prefs?.gendersAllowed,
+        gendersCustom: prefs?.gendersAllowedCustom
+    };
+
+    // Initial feed fetch
+    useEffect(() => {
+        if (preferences) {
+            setIsLoading(true);
+            triggerGetFeed(feedParams).unwrap().then((data) => {
+                if (data && data.length > 0) {
+                    setProfiles(data);
+                    setCurrentIndex(0);
+                    setFinished(false);
+                } else {
+                    setFinished(true);
+                }
+                setIsLoading(false);
+            }).catch((err) => {
+                console.error('Failed to load initial feed:', err);
+                setFinished(true);
+                setIsLoading(false);
+            });
+        }
+    }, [preferences]);
+
     // Match Popup State
     const [matchModalOpen, setMatchModalOpen] = useState(false);
     const [matchedUser, setMatchedUser] = useState<Profile | null>(null);
     const [conversationId, setConversationId] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (feed) {
-            setProfiles(feed);
-            if (feed.length > 0) {
-                setCurrentIndex(0);
-                setFinished(false);
-            } else {
-                setFinished(true);
-            }
-        }
-    }, [feed]);
+    // Handled by lazy trigger
 
     const handleSwipe = async (direction: 'left' | 'right') => {
         if (currentIndex >= profiles.length) return;
@@ -58,7 +139,23 @@ const SwipeDeck = () => {
         const action = direction === 'right' ? 'LIKE' : 'PASS';
 
         // Optimistic UI update: Move to next card
-        setCurrentIndex(prev => prev + 1);
+        const nextIndex = currentIndex + 1;
+        setCurrentIndex(nextIndex);
+
+        // Pre-fetch logic: when 3 or fewer cards remain in stack
+        if (profiles.length - nextIndex <= 3 && !isFetchingMore && !finished) {
+            console.log('Prefetching next batch of profiles...');
+            triggerGetFeed(feedParams).unwrap().then((newBatch) => {
+                if (newBatch && newBatch.length > 0) {
+                    setProfiles((prev) => {
+                        const unique = newBatch.filter(b => !prev.some(p => p.user_id === b.user_id));
+                        return unique.length > 0 ? [...prev, ...unique] : prev;
+                    });
+                }
+            }).catch(e => {
+                console.error('Failed to prefetch feed:', e);
+            });
+        }
 
         try {
             const result = await postSwipe({ targetUserId: profile.user_id, action }).unwrap();
@@ -67,6 +164,7 @@ const SwipeDeck = () => {
                 setMatchedUser(profile);
                 setConversationId(result.conversationId || null);
                 setMatchModalOpen(true);
+                triggerConfetti();
             }
         } catch (error) {
             console.error('Swipe failed', error);
@@ -76,9 +174,7 @@ const SwipeDeck = () => {
     const currentProfile = profiles[currentIndex];
     const nextProfile = profiles[currentIndex + 1];
 
-    const isInitializing = feed && feed.length > 0 && profiles.length === 0;
-
-    if ((isLoading || isInitializing) && profiles.length === 0) {
+    if (isLoading && profiles.length === 0) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: 'background.default' }}>
                 <CircularProgress color="primary" />
@@ -95,7 +191,23 @@ const SwipeDeck = () => {
                 description="Has visto a todos por ahora. ¡Pronto llegarán nuevas caras increíbles!"
                 icon={FavoriteIcon}
                 actionLabel="Buscar de nuevo"
-                onAction={() => { setProfiles([]); refetch(); }}
+                onAction={() => {
+                    setProfiles([]);
+                    setFinished(false);
+                    setCurrentIndex(0);
+                    setIsLoading(true);
+                    triggerGetFeed(feedParams).unwrap().then((data) => {
+                        if (data && data.length > 0) {
+                            setProfiles(data);
+                        } else {
+                            setFinished(true);
+                        }
+                        setIsLoading(false);
+                    }).catch(() => {
+                        setFinished(true);
+                        setIsLoading(false);
+                    });
+                }}
             />
         );
     }

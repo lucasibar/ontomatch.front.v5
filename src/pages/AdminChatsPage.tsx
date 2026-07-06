@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Typography, CircularProgress, List, ListItem, ListItemButton, ListItemAvatar, Avatar, ListItemText, Divider, Paper, useMediaQuery, useTheme, IconButton } from '@mui/material';
 import { useGetSupportConversationsQuery } from '../features/chat/api/chatApi';
+import { getOptimizedCloudinaryUrl } from '../shared/ui/ImageWithFallback';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { AppEmptyState } from '../shared/ui/AppEmptyState';
@@ -106,7 +107,7 @@ export const AdminChatsPage = () => {
                                         <ListItemAvatar>
                                             <Avatar
                                                 alt={conv.partner.name}
-                                                src={conv.partner.photoUrl || undefined}
+                                                src={conv.partner.photoUrl ? getOptimizedCloudinaryUrl(conv.partner.photoUrl, 'w_100,c_fill,g_face,q_auto,f_auto') : undefined}
                                                 sx={{ width: 52, height: 52, mr: 2 }}
                                             />
                                         </ListItemAvatar>
@@ -169,7 +170,7 @@ export const AdminChatsPage = () => {
                                 <ArrowBackIcon />
                             </IconButton>
                             <Avatar
-                                src={selectedConversation?.partner.photoUrl || undefined}
+                                src={selectedConversation?.partner.photoUrl ? getOptimizedCloudinaryUrl(selectedConversation.partner.photoUrl, 'w_100,c_fill,g_face,q_auto,f_auto') : undefined}
                                 sx={{ width: 36, height: 36, mr: 1.5 }}
                             />
                             <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
@@ -193,7 +194,7 @@ export const AdminChatsPage = () => {
                             <>
                                 <Box sx={{ p: 2, bgcolor: 'background.paper', display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
                                     <Avatar
-                                        src={selectedConversation?.partner.photoUrl || undefined}
+                                        src={selectedConversation?.partner.photoUrl ? getOptimizedCloudinaryUrl(selectedConversation.partner.photoUrl, 'w_100,c_fill,g_face,q_auto,f_auto') : undefined}
                                         sx={{ width: 40, height: 40, mr: 2 }}
                                     />
                                     <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>

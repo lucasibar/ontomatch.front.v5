@@ -6,6 +6,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import SchoolIcon from '@mui/icons-material/School';
 import { type Profile } from '../types';
 import { ImageWithFallback } from '../../../shared/ui/ImageWithFallback';
+import { calculateAge } from '../../../shared/utils/date';
 
 interface SwipeCardProps {
     profile: Profile;
@@ -51,7 +52,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo: _onInfo
         setPhotoIndex(prev => Math.min(photos.length - 1, prev + 1));
     };
 
-    const age = new Date().getFullYear() - new Date(profile.birthdate).getFullYear();
+    const age = calculateAge(profile.birthdate);
 
     const currentPhotoUrl = photos[photoIndex]?.url || '';
 

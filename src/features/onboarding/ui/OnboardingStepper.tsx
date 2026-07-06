@@ -23,6 +23,34 @@ export const OnboardingStepper = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
+    // Preload local draft on mount
+    useEffect(() => {
+        const draft = localStorage.getItem('ontomatch_onboarding_draft');
+        if (draft) {
+            try {
+                const parsed = JSON.parse(draft);
+                if (parsed.formData) {
+                    setFormData((prev: any) => ({ ...prev, ...parsed.formData }));
+                }
+                if (typeof parsed.activeStep === 'number') {
+                    setActiveStep(parsed.activeStep);
+                }
+            } catch (e) {
+                console.error('Failed to parse onboarding draft:', e);
+            }
+        }
+    }, []);
+
+    // Save draft on change of formData or activeStep
+    useEffect(() => {
+        if (Object.keys(formData).length > 0) {
+            localStorage.setItem('ontomatch_onboarding_draft', JSON.stringify({
+                formData,
+                activeStep
+            }));
+        }
+    }, [formData, activeStep]);
+
     // Preload existing data if user already has a profile
     useEffect(() => {
         if (profile) {
@@ -207,6 +235,7 @@ export const OnboardingStepper = () => {
             }).unwrap();
 
             dispatch(showToast({ message: '¡Perfil completado! Bienvenido a OntoMatch 🎉', severity: 'success' }));
+            localStorage.removeItem('ontomatch_onboarding_draft');
             navigate('/');
         } catch (err) {
             console.error(err);

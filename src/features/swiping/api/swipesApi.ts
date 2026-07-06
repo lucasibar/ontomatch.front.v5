@@ -31,4 +31,4 @@ export const swipesApi = baseApi.injectEndpoints({
     }),
 });
 
-export const { useGetFeedQuery, usePostSwipeMutation } = swipesApi;
+export const { useGetFeedQuery, useLazyGetFeedQuery, usePostSwipeMutation } = swipesApi;

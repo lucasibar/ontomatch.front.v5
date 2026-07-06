@@ -4,6 +4,7 @@ import { Delete, ArrowBack, ArrowForward } from '@mui/icons-material';
 import { useLazyGetSignatureQuery, useAddPhotoMutation, useGetMeQuery, useDeletePhotoMutation, useReorderPhotosMutation } from '../api/profileApi';
 import { useDispatch } from 'react-redux';
 import { showToast } from '../../../shared/model/uiSlice';
+import { getOptimizedCloudinaryUrl } from '../../../shared/ui/ImageWithFallback';
 
 export const PhotosStep = () => {
     const { data: profile, isLoading } = useGetMeQuery(undefined);
@@ -141,7 +142,7 @@ export const PhotosStep = () => {
                         }}>
                             <CardMedia
                                 component="img"
-                                image={photo.url}
+                                image={getOptimizedCloudinaryUrl(photo.url, 'w_200,c_fill,q_auto,f_auto')}
                                 alt="Profile photo"
                                 sx={{
                                     width: '100%',

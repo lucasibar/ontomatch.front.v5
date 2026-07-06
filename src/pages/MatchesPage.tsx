@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Typography, CircularProgress, List, ListItem, ListItemButton, ListItemAvatar, Avatar, ListItemText, Divider, Paper, useMediaQuery, useTheme, IconButton, Menu, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
 import { useGetConversationsQuery, useBlockUserMutation, useReportUserMutation } from '../features/chat/api/chatApi';
+import { getOptimizedCloudinaryUrl } from '../shared/ui/ImageWithFallback';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -150,7 +151,7 @@ export const MatchesPage = () => {
                                         <ListItemAvatar>
                                             <Avatar
                                                 alt={conv.partner.name}
-                                                src={conv.partner.photoUrl || undefined}
+                                                src={conv.partner.photoUrl ? getOptimizedCloudinaryUrl(conv.partner.photoUrl, 'w_100,c_fill,g_face,q_auto,f_auto') : undefined}
                                                 sx={{ width: 56, height: 56, mr: 2 }}
                                             />
                                         </ListItemAvatar>
@@ -242,7 +243,7 @@ export const MatchesPage = () => {
                                     sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
                                 >
                                     <Avatar
-                                        src={selectedConversation?.partner.photoUrl || undefined}
+                                        src={selectedConversation?.partner.photoUrl ? getOptimizedCloudinaryUrl(selectedConversation.partner.photoUrl, 'w_100,c_fill,g_face,q_auto,f_auto') : undefined}
                                         sx={{ width: 32, height: 32, mr: 1.5 }}
                                     />
                                     <Typography variant="subtitle1" sx={{ fontWeight: 500, color: 'text.primary' }}>
@@ -284,7 +285,7 @@ export const MatchesPage = () => {
                                                 sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
                                             >
                                                 <Avatar
-                                                    src={selectedConversation?.partner.photoUrl || undefined}
+                                                    src={selectedConversation?.partner.photoUrl ? getOptimizedCloudinaryUrl(selectedConversation.partner.photoUrl, 'w_100,c_fill,g_face,q_auto,f_auto') : undefined}
                                                     sx={{ width: 40, height: 40, mr: 2 }}
                                                 />
                                                 <Typography variant="subtitle1" sx={{ fontWeight: 500, color: 'text.primary' }}>
