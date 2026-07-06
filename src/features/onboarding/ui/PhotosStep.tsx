@@ -28,6 +28,19 @@ export const PhotosStep = () => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Validation: size <= 5MB
+        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+        if (file.size > MAX_SIZE) {
+            dispatch(showToast({ message: 'La imagen es muy pesada. El tamaño máximo es 5MB.', severity: 'warning' }));
+            return;
+        }
+
+        // Validation: type must be image
+        if (!file.type.startsWith('image/')) {
+            dispatch(showToast({ message: 'El archivo seleccionado debe ser una imagen.', severity: 'warning' }));
+            return;
+        }
+
         setUploading(true);
         try {
             // 1. Get Sig

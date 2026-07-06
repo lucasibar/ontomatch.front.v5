@@ -6,12 +6,15 @@ import ForumIcon from '@mui/icons-material/Forum';
 import SparklesIcon from '@mui/icons-material/AutoAwesome';
 import SwipeCard from './SwipeCard';
 import { AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useGetFeedQuery, usePostSwipeMutation } from '../api/swipesApi';
 import { useGetPreferencesQuery, useGetMeQuery } from '../../onboarding/api/profileApi';
 import { type Profile } from '../types';
 import { AppEmptyState } from '../../../shared/ui/AppEmptyState';
+import { getOptimizedCloudinaryUrl } from '../../../shared/ui/ImageWithFallback';
 
 const SwipeDeck = () => {
+    const navigate = useNavigate();
     const { data: preferences } = useGetPreferencesQuery(undefined);
     const { data: me } = useGetMeQuery(undefined);
 
@@ -101,7 +104,9 @@ const SwipeDeck = () => {
     const p: any = me;
     const myPhotos = p?.user?.photos || [];
     const sortedMyPhotos = [...myPhotos].sort((a: any, b: any) => a.position - b.position);
-    const mePhoto = sortedMyPhotos.length > 0 ? sortedMyPhotos[0].url : '/logo192.png';
+    const mePhoto = sortedMyPhotos.length > 0 
+        ? getOptimizedCloudinaryUrl(sortedMyPhotos[0].url, 'w_200,c_fill,g_face,q_auto,f_auto') 
+        : '/logo192.png';
 
     return (
         <Box sx={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden', bgcolor: 'background.default' }}>
@@ -274,7 +279,9 @@ const SwipeDeck = () => {
 
                         {/* Partner Photo */}
                         <Avatar
-                            src={matchedUser?.photos?.[0]?.url || '/logo192.png'}
+                            src={matchedUser?.photos?.[0]?.url 
+                                ? getOptimizedCloudinaryUrl(matchedUser.photos[0].url, 'w_200,c_fill,g_face,q_auto,f_auto') 
+                                : '/logo192.png'}
                             sx={{
                                 width: 100,
                                 height: 100,
@@ -295,7 +302,7 @@ const SwipeDeck = () => {
                             startIcon={<ForumIcon />}
                             onClick={() => {
                                 setMatchModalOpen(false);
-                                window.location.href = `/matches?conversationId=${conversationId}`;
+                                navigate(`/matches?conversationId=${conversationId}`);
                             }}
                             sx={{
                                 background: 'linear-gradient(135deg, #ea00d9 0%, #711c91 100%)',

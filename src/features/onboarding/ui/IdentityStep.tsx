@@ -70,11 +70,8 @@ export const IdentityStep = ({ data, onChange }: { data: any, onChange: (d: any)
                 {currentGendersAllowed.includes('other') && (
                     <TextField
                         label="¿Qué identidad buscás?"
-                        value={(data.gendersAllowedCustom || []).join(', ')}
-                        onChange={(e) => {
-                            const customs = e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean);
-                            onChange({ ...data, gendersAllowedCustom: customs });
-                        }}
+                        value={data.gendersAllowedCustomStr || ''}
+                        onChange={(e) => onChange({ ...data, gendersAllowedCustomStr: e.target.value })}
                         margin="dense"
                         fullWidth
                         helperText="Separá con comas si buscás más de una. Ej: Fluido, Terian"

@@ -62,6 +62,7 @@ export const OnboardingStepper = () => {
                 ageRange: prev.ageRange || [prefs.ageMin || 18, prefs.ageMax || 99],
                 gendersAllowed: prev.gendersAllowed || prefs.gendersAllowed || [],
                 gendersAllowedCustom: prev.gendersAllowedCustom || prefs.gendersAllowedCustom || [],
+                gendersAllowedCustomStr: prev.gendersAllowedCustomStr || (prefs.gendersAllowedCustom || []).join(', '),
             }));
         }
     }, [preferences]);
@@ -109,6 +110,16 @@ export const OnboardingStepper = () => {
                 dispatch(showToast({ message: 'Por favor ingresá tu nombre', severity: 'warning' }));
                 return;
             }
+
+            if (!formData.coachingSchool || formData.coachingSchool.trim().length === 0) {
+                dispatch(showToast({ message: 'Por favor ingresá tu escuela de coaching', severity: 'warning' }));
+                return;
+            }
+
+            if (!formData.lookingFor) {
+                dispatch(showToast({ message: 'Por favor seleccioná qué estás buscando', severity: 'warning' }));
+                return;
+            }
         }
 
         if (activeStep === 1) {
@@ -128,13 +139,9 @@ export const OnboardingStepper = () => {
         }
 
         if (activeStep === 2) {
-            // Bio & Coaching Credentials Validation
+            // Bio Validation
             if (!formData.bio || formData.bio.trim().length < 20) {
                 dispatch(showToast({ message: 'Por favor escribí una breve descripción de al menos 20 caracteres', severity: 'warning' }));
-                return;
-            }
-            if (!formData.coachingSchool || formData.coachingSchool.trim().length === 0) {
-                dispatch(showToast({ message: 'Por favor escribí o seleccioná tu escuela de coaching ontológico', severity: 'warning' }));
                 return;
             }
         }
@@ -187,11 +194,16 @@ export const OnboardingStepper = () => {
             };
             await updateProfile(profilePayload).unwrap();
 
+            const customs = formData.gendersAllowedCustomStr
+                ? formData.gendersAllowedCustomStr.split(',').map((s: string) => s.trim()).filter(Boolean)
+                : (formData.gendersAllowedCustom || []);
+
             await updatePreferences({
                 distanceKm: formData.distanceKm || 50,
                 ageMin: formData.ageRange?.[0] || 18,
                 ageMax: formData.ageRange?.[1] || 99,
-                gendersAllowed: formData.gendersAllowed || []
+                gendersAllowed: formData.gendersAllowed || [],
+                gendersAllowedCustom: customs
             }).unwrap();
 
             dispatch(showToast({ message: '¡Perfil completado! Bienvenido a OntoMatch 🎉', severity: 'success' }));

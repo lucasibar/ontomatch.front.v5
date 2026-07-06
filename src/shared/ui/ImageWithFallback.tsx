@@ -7,21 +7,20 @@ interface ImageWithFallbackProps extends BoxProps {
     cloudinaryTransform?: string; // e.g. "w_600,c_fill,q_auto,f_auto"
 }
 
+export const getOptimizedCloudinaryUrl = (url: string, transform = 'w_800,c_fill,q_auto,f_auto') => {
+    if (!url) return '';
+    if (url.includes('cloudinary.com') && !url.includes('/upload/w_') && !url.includes('/upload/q_')) {
+        // Insert transformation after /upload/
+        return url.replace('/upload/', `/upload/${transform}/`);
+    }
+    return url;
+};
+
 export const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({ src, alt, cloudinaryTransform = 'w_800,c_fill,q_auto,f_auto', sx, ...props }) => {
     const [loaded, setLoaded] = useState(false);
     const [error, setError] = useState(false);
 
-    // If the image is from Cloudinary, we can inject transformations to save bandwidth
-    const getOptimizedUrl = (url: string) => {
-        if (!url) return '';
-        if (url.includes('cloudinary.com') && !url.includes('/upload/w_') && !url.includes('/upload/q_')) {
-            // Insert transformation after /upload/
-            return url.replace('/upload/', `/upload/${cloudinaryTransform}/`);
-        }
-        return url;
-    };
-
-    const optimizedSrc = getOptimizedUrl(src);
+    const optimizedSrc = getOptimizedCloudinaryUrl(src, cloudinaryTransform);
 
     return (
         <Box sx={{ position: 'relative', width: '100%', height: '100%', ...sx }} {...props}>

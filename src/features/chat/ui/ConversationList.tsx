@@ -1,5 +1,6 @@
 import { List, ListItem, ListItemButton, ListItemAvatar, ListItemText, Avatar, Typography, Divider } from '@mui/material';
 import { useGetConversationsQuery } from '../api/chatApi';
+import { getOptimizedCloudinaryUrl } from '../../../shared/ui/ImageWithFallback';
 
 export const ConversationList = ({ onSelect }: { onSelect: (id: string) => void }) => {
     const { data: conversations, isLoading } = useGetConversationsQuery();
@@ -14,7 +15,7 @@ export const ConversationList = ({ onSelect }: { onSelect: (id: string) => void 
                     <ListItem alignItems="flex-start" disablePadding>
                         <ListItemButton onClick={() => onSelect(conv.id)}>
                             <ListItemAvatar>
-                                <Avatar alt={conv.partner.name} src={conv.partner.photoUrl || undefined} />
+                                <Avatar alt={conv.partner.name} src={conv.partner.photoUrl ? getOptimizedCloudinaryUrl(conv.partner.photoUrl, 'w_100,c_fill,g_face,q_auto,f_auto') : undefined} />
                             </ListItemAvatar>
                             <ListItemText
                                 primary={conv.partner.name}

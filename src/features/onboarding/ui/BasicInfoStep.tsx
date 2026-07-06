@@ -7,6 +7,7 @@ export const BasicInfoStep = ({ data, onChange }: { data: any, onChange: (d: any
 
             <TextField
                 label="Nombre"
+                required
                 value={data.name || ''}
                 onChange={(e) => onChange({ ...data, name: e.target.value })}
                 fullWidth
@@ -14,6 +15,7 @@ export const BasicInfoStep = ({ data, onChange }: { data: any, onChange: (d: any
 
             <TextField
                 label="Escuela de Coaching"
+                required
                 value={data.coachingSchool || ''}
                 onChange={(e) => onChange({ ...data, coachingSchool: e.target.value })}
                 fullWidth
@@ -22,6 +24,7 @@ export const BasicInfoStep = ({ data, onChange }: { data: any, onChange: (d: any
 
             <TextField
                 label="Fecha de Nacimiento"
+                required
                 placeholder="DD/MM/YYYY"
                 value={data.birthdate || ''}
                 onChange={(e) => onChange({ ...data, birthdate: e.target.value })}
@@ -38,11 +41,11 @@ export const BasicInfoStep = ({ data, onChange }: { data: any, onChange: (d: any
                 helperText="Ej: 175"
             />
 
-            <FormControl fullWidth>
+            <FormControl fullWidth required>
                 <InputLabel>¿Qué buscas?</InputLabel>
                 <Select
                     value={data.lookingFor || ''}
-                    label="¿Qué buscas?"
+                    label="¿Qué buscas? *"
                     onChange={(e) => onChange({ ...data, lookingFor: e.target.value })}
                 >
                     <MenuItem value="serious">Algo serio</MenuItem>
