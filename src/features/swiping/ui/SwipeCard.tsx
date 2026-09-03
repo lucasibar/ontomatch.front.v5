@@ -6,7 +6,6 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import SchoolIcon from '@mui/icons-material/School';
 import { type Profile } from '../types';
 import { ImageWithFallback } from '../../../shared/ui/ImageWithFallback';
-import { calculateAge } from '../../../shared/utils/date';
 
 interface SwipeCardProps {
     profile: Profile;
@@ -30,12 +29,12 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo: _onInfo
 
         if (info.offset.x > swipeThreshold) {
             // Swipe Right = LIKE
-            animate(x, 500, { duration: 0.3 });
-            setTimeout(() => onSwipe('right'), 200);
+            animate(x, 0, { duration: 0.2 });
+            onSwipe('right');
         } else if (info.offset.x < -swipeThreshold) {
             // Swipe Left = PASS
-            animate(x, -500, { duration: 0.3 });
-            setTimeout(() => onSwipe('left'), 200);
+            animate(x, 0, { duration: 0.2 });
+            onSwipe('left');
         } else {
             // Snap back
             animate(x, 0, { duration: 0.3 });
@@ -52,7 +51,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo: _onInfo
         setPhotoIndex(prev => Math.min(photos.length - 1, prev + 1));
     };
 
-    const age = calculateAge(profile.birthdate);
+    const age = profile.age;
 
     const currentPhotoUrl = photos[photoIndex]?.url || '';
 
@@ -79,7 +78,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo: _onInfo
                     height: '100%',
                     width: '100%',
                     overflow: 'hidden',
-                    borderRadius: 3, 
+                    borderRadius: '20px',
                     position: 'relative',
                     bgcolor: '#FFFFFF',
                     border: '1px solid #E4E4E7',
@@ -152,7 +151,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo: _onInfo
                                 transform: 'rotate(-20deg)',
                             }}>
                                 <Typography sx={{ color: '#4caf50', fontWeight: 900, fontSize: '2rem', letterSpacing: 2 }}>
-                                    LIKE
+                                    ME GUSTA
                                 </Typography>
                             </Box>
                         </motion.div>
@@ -172,7 +171,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo: _onInfo
                                 transform: 'rotate(20deg)',
                             }}>
                                 <Typography sx={{ color: '#ff4b4b', fontWeight: 900, fontSize: '2rem', letterSpacing: 2 }}>
-                                    NOPE
+                                    PASAR
                                 </Typography>
                             </Box>
                         </motion.div>
@@ -215,7 +214,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo: _onInfo
                         </Box>
                     )}
 
-                    {profile.bio && photoIndex >= 1 && (
+                    {profile.bio && (
                         <motion.div
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}

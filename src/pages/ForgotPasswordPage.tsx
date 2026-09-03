@@ -30,7 +30,7 @@ export const ForgotPasswordPage = () => {
     };
 
     const handleReset = async () => {
-        if (!code || !newPassword) return;
+        if (!/^\d{6}$/.test(code) || newPassword.length < 8 || newPassword.length > 128) return;
         try {
             await resetPassword({ email, code, newPassword }).unwrap();
             dispatch(showToast({ message: 'Contraseña actualizada con éxito. Ya puedes iniciar sesión.', severity: 'success' }));
@@ -98,7 +98,7 @@ export const ForgotPasswordPage = () => {
                             label="Nueva contraseña"
                             type="password"
                             variant="outlined"
-                            value={newPassword}
+                            helperText="Entre 8 y 128 caracteres" inputProps={{ minLength: 8, maxLength: 128 }} value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                             sx={{ mb: 3 }}
                         />
@@ -107,7 +107,7 @@ export const ForgotPasswordPage = () => {
                             variant="contained"
                             size="large"
                             onClick={handleReset}
-                            disabled={!code || !newPassword || isLoading}
+                            disabled={!/^\d{6}$/.test(code) || newPassword.length < 8 || newPassword.length > 128 || isLoading}
                             sx={{ mb: 2, borderRadius: 3, py: 1.5 }}
                         >
                             {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Actualizar contraseña'}

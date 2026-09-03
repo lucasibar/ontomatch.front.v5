@@ -3,9 +3,11 @@ import { io, Socket } from 'socket.io-client';
 
 class SocketService {
     private socket: Socket | null = null;
+    private token: string | null = null;
 
     connect(token: string) {
-        if (this.socket?.connected) return this.socket;
+        if (this.socket && this.token === token) return this.socket;
+        this.token = token;
 
         // If there's a stale disconnected socket, clean it up
         if (this.socket) {
@@ -34,11 +36,11 @@ class SocketService {
             console.log('Socket Disconnected:', reason);
         });
 
-        this.socket.on('reconnect', (attemptNumber: number) => {
+        this.socket.io.on('reconnect', (attemptNumber: number) => {
             console.log('Socket Reconnected after', attemptNumber, 'attempts');
         });
 
-        this.socket.on('reconnect_error', (error: Error) => {
+        this.socket.io.on('reconnect_error', (error: Error) => {
             console.error('Socket reconnection error:', error.message);
         });
 
@@ -50,6 +52,7 @@ class SocketService {
     }
 
     disconnect() {
+        this.token = null;
         if (this.socket) {
             this.socket.removeAllListeners();
             this.socket.disconnect();

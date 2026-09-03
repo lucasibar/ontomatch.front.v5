@@ -9,7 +9,16 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
-        enabled: true,
+        enabled: false,
+      },
+      workbox: {
+        // Cache application assets on use; never cache API responses or personal data.
+        globPatterns: ['**/*.{html,css,svg,png,ico}'],
+        runtimeCaching: [{
+          urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/assets/'),
+          handler: 'CacheFirst',
+          options: { cacheName: 'ontomatch-static-assets', expiration: { maxEntries: 80, maxAgeSeconds: 30 * 24 * 60 * 60 } },
+        }],
       },
       manifest: {
         name: 'OntoMatch - Citas para Coaches',

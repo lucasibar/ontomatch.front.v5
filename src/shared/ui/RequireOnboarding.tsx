@@ -1,10 +1,10 @@
 
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useGetMeQuery } from '../../features/onboarding/api/profileApi';
-import { Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, Alert, Button } from '@mui/material';
 
 export const RequireOnboarding = () => {
-    const { data: user, isLoading } = useGetMeQuery(undefined);
+    const { data: user, isLoading, isError, refetch } = useGetMeQuery(undefined);
     const location = useLocation();
 
     if (isLoading) {
@@ -15,6 +15,7 @@ export const RequireOnboarding = () => {
         );
     }
 
+    if (isError) return <Box p={3}><Alert severity="error">No pudimos cargar tu perfil.</Alert><Button onClick={refetch}>Reintentar</Button></Box>;
     // If user is NOT onboarded OR missing mandatory data, redirect to /onboarding
     // We check for: Flag, Name, Birthdate, Gender, LookingFor, and at least 3 Photos.
     const u: any = user;

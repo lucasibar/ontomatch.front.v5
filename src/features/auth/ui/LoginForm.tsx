@@ -64,7 +64,7 @@ export const LoginForm = () => {
                         error={isEmailError}
                     />
                     <TextField
-                        label="Password"
+                        label="Contraseña"
                         type="password"
                         fullWidth
                         margin="normal"
@@ -95,7 +95,7 @@ export const LoginForm = () => {
 
                     <Box sx={{ textAlign: 'center', mt: 3 }}>
                         <Typography variant="body2" color="text.secondary">
-                            ¿No tienes cuenta? <Link to="/register" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>Regístrate</Link>
+                            ¿No tenés cuenta? <Link to="/register" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>Registrate</Link>
                         </Typography>
                     </Box>
                 </Box>

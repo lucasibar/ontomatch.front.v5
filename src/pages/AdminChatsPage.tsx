@@ -1,3 +1,4 @@
+import { Button } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, Typography, CircularProgress, List, ListItem, ListItemButton, ListItemAvatar, Avatar, ListItemText, Divider, Paper, useMediaQuery, useTheme, IconButton } from '@mui/material';
@@ -15,7 +16,8 @@ export const AdminChatsPage = () => {
     const location = useLocation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-    const { data: conversations, isLoading, isError } = useGetSupportConversationsQuery();
+    const [offset, setOffset] = useState(0);
+    const { data: conversations, isLoading, isError } = useGetSupportConversationsQuery(offset);
     const user = useSelector((state: RootState) => state.auth.user);
 
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
@@ -145,7 +147,7 @@ export const AdminChatsPage = () => {
                             </div>
                         );
                     })}
-                </List>
+                </List><Box display="flex" justifyContent="space-between" p={2}><Button disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - 30))}>Anteriores</Button><Button disabled={(conversations?.length || 0) < 30} onClick={() => setOffset(offset + 30)}>Más chats</Button></Box>
             </Box>
         </Box>
     );

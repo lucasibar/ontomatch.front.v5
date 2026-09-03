@@ -18,7 +18,8 @@ export const MatchesPage = () => {
     const location = useLocation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-    const { data: conversations, isLoading, isError } = useGetConversationsQuery();
+    const [offset, setOffset] = useState(0);
+    const { data: conversations, isLoading, isFetching, isError, refetch } = useGetConversationsQuery(offset);
     const user = useSelector((state: RootState) => state.auth.user);
 
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
@@ -93,12 +94,12 @@ export const MatchesPage = () => {
         return (
             <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: 'background.default', gap: 2 }}>
                 <Typography variant="h6" sx={{ opacity: 0.7 }}>Algo salió mal</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.5 }}>No pudimos cargar tus conversaciones.</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.5 }}>No pudimos cargar tus conversaciones.</Typography><Button onClick={refetch}>Reintentar</Button>
             </Box>
         );
     }
 
-    if (!conversations || conversations.length === 0) {
+    if ((!conversations || conversations.length === 0) && offset === 0) {
         return (
             <AppEmptyState
                 title="¡Todo empieza con un Hola!"
@@ -113,10 +114,10 @@ export const MatchesPage = () => {
     // List Component Content
     const matchesList = (
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
-            <Typography variant="h5" fontWeight="500" sx={{ p: 3, pb: 2, color: 'text.primary' }}>Matches</Typography>
+            <Typography variant="h5" fontWeight="500" sx={{ p: 3, pb: 2, color: 'text.primary' }}>Chats</Typography>
             <Box sx={{ overflowY: 'auto', flexGrow: 1 }}>
                 <List sx={{ width: '100%', bgcolor: 'transparent' }}>
-                    {conversations.map((conv) => {
+                    {conversations?.map((conv) => {
                         const hasMessage = conv.lastMessage && conv.lastMessage.body;
 
                         let subtitleText = "";
@@ -125,7 +126,7 @@ export const MatchesPage = () => {
 
                         if (hasMessage && conv.lastMessage) {
                             const lastMsg: any = conv.lastMessage;
-                            const isMe = lastMsg.senderUserId === user?.id;
+                            const isMe = lastMsg.senderId === user?.id;
                             subtitleText = isMe ? `Vos: ${lastMsg.body}` : lastMsg.body;
                             subtitleColor = "text.secondary";
                             timeString = new Date(lastMsg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -208,7 +209,7 @@ export const MatchesPage = () => {
                             </div>
                         );
                     })}
-                </List>
+                </List><Box display="flex" justifyContent="space-between" p={2}><Button disabled={offset === 0 || isFetching} onClick={() => setOffset(Math.max(0, offset - 30))}>Anteriores</Button><Button disabled={(conversations?.length || 0) < 30 || isFetching} onClick={() => setOffset(offset + 30)}>Más chats</Button></Box>
             </Box>
         </Box>
     );

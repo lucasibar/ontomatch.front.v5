@@ -27,7 +27,6 @@ import { useGetProfileByIdQuery } from '../../onboarding/api/profileApi';
 import { useBlockUserMutation, useReportUserMutation } from '../api/chatApi';
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
 import { ImageWithFallback } from '../../../shared/ui/ImageWithFallback';
-import { calculateAge } from '../../../shared/utils/date';
 
 interface PartnerProfileViewProps {
     userId: string | null;
@@ -40,7 +39,7 @@ interface PartnerProfileViewProps {
 
 interface Profile {
     name: string;
-    birthdate: string;
+    age: number;
     gender: string;
     bio: string;
     looking_for: string;
@@ -48,7 +47,7 @@ interface Profile {
     locationText?: string;
     neighborhood?: string;
     coachingSchool?: string;
-    gender_custom?: string;
+    genderCustom?: string;
     photos: { url: string }[];
 }
 
@@ -113,7 +112,7 @@ export const PartnerProfileView: React.FC<PartnerProfileViewProps> = ({ userId, 
         );
     }
 
-    const age = calculateAge(profile.birthdate);
+    const age = profile.age;
     const photos = profile.photos || [];
 
     const handleNextPhoto = (e: React.MouseEvent) => {
@@ -330,7 +329,7 @@ export const PartnerProfileView: React.FC<PartnerProfileViewProps> = ({ userId, 
                                 </Typography>
 
                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 4 }}>
-                                    <Chip icon={<PersonIcon />} label={getGenderLabel(profile.gender, profile.gender_custom)} sx={{ borderRadius: 2, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)' }} />
+                                    <Chip icon={<PersonIcon />} label={getGenderLabel(profile.gender, profile.genderCustom)} sx={{ borderRadius: 2, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)' }} />
                                     {profile.height && (
                                         <Chip icon={<HeightIcon />} label={`${profile.height} cm`} sx={{ borderRadius: 2, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)' }} />
                                     )}

@@ -1,6 +1,7 @@
+import { GenderPreferences } from '../features/onboarding/ui/IdentityStep';
 import { Box, Typography, Container, TextField, Button, MenuItem, FormControl, InputLabel, Select, Snackbar, Alert, Slider, Autocomplete } from '@mui/material';
-import { useGetMeQuery, useUpdateProfileMutation, useGetPreferencesQuery, useUpdatePreferencesMutation, useLazySearchLocationsQuery } from '../features/onboarding/api/profileApi';
-import { useState, useEffect } from 'react';
+import { useGetMeQuery, useCompleteProfileMutation, useGetPreferencesQuery, useLazySearchLocationsQuery } from '../features/onboarding/api/profileApi';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { logout } from '../features/auth/model/authSlice';
 import { PhotosStep } from '../features/onboarding/ui/PhotosStep';
@@ -9,8 +10,8 @@ export const ProfilePage = () => {
     const dispatch = useDispatch();
     const { data: profile, isLoading } = useGetMeQuery(undefined);
     const { data: preferences } = useGetPreferencesQuery(undefined);
-    const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
-    const [updatePreferences] = useUpdatePreferencesMutation();
+    const [completeProfile, { isLoading: isUpdating }] = useCompleteProfileMutation();
+    const initialized = useRef(false);
     const [formData, setFormData] = useState<any>({});
     const [prefData, setPrefData] = useState<any>({ distanceKm: 50, ageRange: [18, 99], gendersAllowed: [] });
     const [toast, setToast] = useState<{ open: boolean, message: string, severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
@@ -27,6 +28,8 @@ export const ProfilePage = () => {
     }, [search, trigger]);
 
     useEffect(() => {
+        if (initialized.current || !profile || !preferences) return;
+        initialized.current = true;
         if (profile) {
             const p: any = profile;
             setFormData({
@@ -39,7 +42,7 @@ export const ProfilePage = () => {
                 locationText: p.locationText,
                 neighborhood: p.neighborhood,
                 coachingSchool: p.coachingSchool,
-                genderCustom: p.gender_custom,
+                genderCustom: p.genderCustom,
             });
         }
         if (preferences) {
@@ -61,7 +64,7 @@ export const ProfilePage = () => {
 
     const handleSave = async () => {
         // Validation
-        const required = ['name', 'bio', 'birthdate', 'gender', 'lookingFor', 'locationText'];
+        const required = ['name', 'bio', 'birthdate', 'gender', 'lookingFor', 'locationText', 'coachingSchool'];
         const missing = required.filter(field => !formData[field]);
 
         if (missing.length > 0) {
@@ -70,7 +73,7 @@ export const ProfilePage = () => {
         }
 
         try {
-            await updateProfile(formData).unwrap();
+
 
             const customs = prefData.gendersAllowedCustomStr
                 ? prefData.gendersAllowedCustomStr.split(',').map((s: string) => s.trim()).filter(Boolean)
@@ -84,7 +87,7 @@ export const ProfilePage = () => {
                 gendersAllowedCustom: customs
             };
 
-            await updatePreferences(prefPayload).unwrap();
+            await completeProfile({ profile: { ...formData, height: formData.height || undefined, locationId: formData.locationId || undefined }, preferences: { ...prefPayload, gendersAllowedCustom: [] } }).unwrap();
 
             setToast({ open: true, message: 'Perfil y preferencias actualizados', severity: 'success' });
         } catch (error) {
@@ -98,7 +101,7 @@ export const ProfilePage = () => {
         <Container maxWidth="sm" sx={{ pb: 10, pt: 2 }}>
 
             <Box component="form" display="flex" flexDirection="column" gap={3} mt={1}>
-                <Typography variant="h6">Información Personal</Typography>
+                <Typography variant="h6">Mi perfil</Typography>
 
                 <TextField
                     label="Nombre"
@@ -107,7 +110,7 @@ export const ProfilePage = () => {
                     fullWidth
                 />
                 <TextField
-                    label="Bio"
+                    label="Tu declaración"
                     multiline
                     rows={3}
                     value={formData.bio || ''}
@@ -152,11 +155,11 @@ export const ProfilePage = () => {
 
                 {formData.gender === 'other' && (
                     <TextField
-                        label="Específica tu género"
+                        label="Tu identidad (opcional)"
                         value={formData.genderCustom || ''}
                         onChange={(e) => handleChange('genderCustom', e.target.value)}
                         fullWidth
-                        helperText="Quien busque exactamente esto te encontrará."
+                        helperText="Podés describirla con tus propias palabras."
                     />
                 )}
 
@@ -207,46 +210,13 @@ export const ProfilePage = () => {
                     fullWidth
                 />
 
-                <Typography variant="h6" mt={2}>Preferencias de Discovery</Typography>
+                <Typography variant="h6" mt={2}>Qué estás buscando</Typography>
 
-                <FormControl fullWidth>
-                    <InputLabel>Interés en (Género)</InputLabel>
-                    <Select
-                        multiple
-                        value={prefData.gendersAllowed || []}
-                        label="Interés en (Género)"
-                        onChange={(e) => {
-                            const val = typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value;
-                            setPrefData({ ...prefData, gendersAllowed: val });
-                        }}
-                        renderValue={(selected) => (selected as string[]).map(v =>
-                            v === 'male' ? 'Hombres' : v === 'female' ? 'Mujeres' : v === 'non_binary' ? 'No Binarios' : v
-                        ).join(', ')}
-                    >
-                        <MenuItem value="male">Hombres</MenuItem>
-                        <MenuItem value="female">Mujeres</MenuItem>
-                        <MenuItem value="non_binary">No Binarios</MenuItem>
-                        <MenuItem value="other">Otro</MenuItem>
-                    </Select>
-                </FormControl>
-
-                {prefData.gendersAllowed?.includes('other') && (
-                    <TextField
-                        label="Especifica qué otros géneros buscas"
-                        value={prefData.gendersAllowedCustomStr || ''}
-                        onChange={(e) => setPrefData({ 
-                            ...prefData, 
-                            gendersAllowedCustomStr: e.target.value 
-                        })}
-                        fullWidth
-                        helperText="Separa con comas. Ej: Gato, Perro"
-                    />
-                )}
-
+<GenderPreferences value={prefData.gendersAllowed || []} onChange={value => setPrefData({ ...prefData, gendersAllowed: value })} />
                 <Box>
                     <Typography gutterBottom>Distancia Máxima: {prefData.distanceKm} km</Typography>
                     <Slider
-                        value={prefData.distanceKm}
+                        aria-label="Distancia máxima en kilómetros" value={prefData.distanceKm}
                         onChange={(_, val) => setPrefData({ ...prefData, distanceKm: val })}
                         valueLabelDisplay="auto"
                         min={1} max={100}
@@ -256,7 +226,7 @@ export const ProfilePage = () => {
                 <Box>
                     <Typography gutterBottom>Rango de Edad: {prefData.ageRange.join(' - ')} años</Typography>
                     <Slider
-                        value={prefData.ageRange}
+                        getAriaLabel={index => index === 0 ? 'Edad mínima' : 'Edad máxima'} value={prefData.ageRange}
                         onChange={(_, val) => setPrefData({ ...prefData, ageRange: val })}
                         valueLabelDisplay="auto"
                         min={18} max={99}

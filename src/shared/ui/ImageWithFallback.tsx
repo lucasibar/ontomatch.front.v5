@@ -16,11 +16,14 @@ export const getOptimizedCloudinaryUrl = (url: string, transform = 'w_800,c_fill
     return url;
 };
 
-export const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({ src, alt, cloudinaryTransform = 'w_800,c_fill,q_auto,f_auto', sx, ...props }) => {
+export const ImageWithFallback: React.FC<ImageWithFallbackProps> = props => <ImageContent key={props.src + ':' + (props.cloudinaryTransform || '')} {...props} />;
+
+const ImageContent: React.FC<ImageWithFallbackProps> = ({ src, alt, cloudinaryTransform = 'w_800,c_fill,q_auto,f_auto', sx, ...props }) => {
     const [loaded, setLoaded] = useState(false);
     const [error, setError] = useState(false);
 
     const optimizedSrc = getOptimizedCloudinaryUrl(src, cloudinaryTransform);
+
 
     return (
         <Box sx={{ position: 'relative', width: '100%', height: '100%', ...sx }} {...props}>
@@ -38,6 +41,7 @@ export const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({ src, alt, 
                 component="img"
                 src={optimizedSrc}
                 alt={alt}
+                decoding="async"
                 onLoad={() => setLoaded(true)}
                 onError={() => {
                     setError(true);

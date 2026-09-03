@@ -2,7 +2,7 @@
 export interface Profile {
     user_id: string;
     name: string;
-    birthdate: string;
+    age: number;
     distanceKm?: number;
     bio: string;
     photos?: { url: string }[];

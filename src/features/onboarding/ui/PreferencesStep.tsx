@@ -13,14 +13,14 @@ export const PreferencesStep = ({ data, onChange }: { data: any, onChange: (d: a
 
     return (
         <Box display="flex" flexDirection="column" gap={4}>
-            <Typography variant="h6">Preferencias y Objetivos</Typography>
+            <Typography variant="h6">Distancia y edad</Typography>
 
 
 
             <Box>
                 <Typography gutterBottom>Distancia Máxima: {data.distanceKm || 50} km</Typography>
                 <Slider
-                    value={data.distanceKm || 50}
+                    aria-label="Distancia máxima en kilómetros" value={data.distanceKm || 50}
                     onChange={handleDistanceChange}
                     valueLabelDisplay="auto"
                     min={1}
@@ -31,7 +31,7 @@ export const PreferencesStep = ({ data, onChange }: { data: any, onChange: (d: a
             <Box>
                 <Typography gutterBottom>Rango de Edad: {(data.ageRange || [18, 99]).join(' - ')} años</Typography>
                 <Slider
-                    value={data.ageRange || [18, 99]}
+                    getAriaLabel={index => index === 0 ? 'Edad mínima' : 'Edad máxima'} value={data.ageRange || [18, 99]}
                     onChange={handleAgeRangeChange}
                     valueLabelDisplay="auto"
                     min={18}
@@ -41,7 +41,7 @@ export const PreferencesStep = ({ data, onChange }: { data: any, onChange: (d: a
             </Box>
 
             <Typography variant="caption" color="text.secondary">
-                * Estas preferencias se pueden modificar luego desde Ajustes.
+                Podés cambiar estos filtros desde Descubrir o desde tu perfil.
             </Typography>
         </Box>
     );

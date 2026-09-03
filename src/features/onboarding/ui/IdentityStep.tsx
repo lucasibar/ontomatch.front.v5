@@ -1,83 +1,30 @@
-
 import { Box, Typography, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Checkbox, FormGroup } from '@mui/material';
 
-export const IdentityStep = ({ data, onChange }: { data: any, onChange: (d: any) => void }) => {
-    // Gender types
-    const genders = [
-        { value: 'male', label: 'Hombre' },
-        { value: 'female', label: 'Mujer' },
-        { value: 'non_binary', label: 'No binario' },
-        { value: 'other', label: 'Otra identidad' },
-    ];
-
-    const currentGendersAllowed = data.gendersAllowed || [];
-
-    const handleGenderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onChange({ ...data, gender: e.target.value });
-    };
-
-    const handleLookingForChange = (value: string, checked: boolean) => {
-        let newGeneros = [];
-        if (checked) {
-            newGeneros = [...currentGendersAllowed, value];
-        } else {
-            newGeneros = currentGendersAllowed.filter((g: string) => g !== value);
-        }
-        onChange({ ...data, gendersAllowed: newGeneros });
-    };
-
-    return (
-        <Box display="flex" flexDirection="column" gap={4}>
-            <Typography variant="h6">Identidad y Búsqueda</Typography>
-
-            {/* My Gender */}
-            <FormControl>
-                <FormLabel>¿Con qué género te distinguís?</FormLabel>
-                <RadioGroup value={data.gender || ''} onChange={handleGenderChange}>
-                    {genders.map((g) => (
-                        <FormControlLabel key={g.value} value={g.value} control={<Radio />} label={g.label} />
-                    ))}
-                </RadioGroup>
-                {data.gender === 'other' && (
-                    <TextField
-                        label="Especificá tu identidad"
-                        value={data.genderCustom || ''}
-                        onChange={(e) => onChange({ ...data, genderCustom: e.target.value })}
-                        margin="dense"
-                        fullWidth
-                        helperText="Ej: Fluido, Terian, etc."
-                    />
-                )}
-            </FormControl>
-
-            {/* Looking For */}
-            <FormControl>
-                <FormLabel>¿Qué géneros buscás?</FormLabel>
-                <FormGroup>
-                    {genders.map((g) => (
-                        <FormControlLabel
-                            key={g.value}
-                            control={
-                                <Checkbox
-                                    checked={currentGendersAllowed.includes(g.value)}
-                                    onChange={(e) => handleLookingForChange(g.value, e.target.checked)}
-                                />
-                            }
-                            label={g.label}
-                        />
-                    ))}
-                </FormGroup>
-                {currentGendersAllowed.includes('other') && (
-                    <TextField
-                        label="¿Qué identidad buscás?"
-                        value={data.gendersAllowedCustomStr || ''}
-                        onChange={(e) => onChange({ ...data, gendersAllowedCustomStr: e.target.value })}
-                        margin="dense"
-                        fullWidth
-                        helperText="Separá con comas si buscás más de una. Ej: Fluido, Terian"
-                    />
-                )}
-            </FormControl>
-        </Box>
-    );
-};
+export const genderOptions = [
+    { value: 'male', label: 'Hombre' },
+    { value: 'female', label: 'Mujer' },
+    { value: 'non_binary', label: 'Persona no binaria' },
+    { value: 'other', label: 'Otra identidad' },
+];
+export function GenderPreferences({ value, onChange }: { value: string[]; onChange: (value: string[]) => void }) {
+    return <FormControl component="fieldset">
+        <FormLabel component="legend">¿A quiénes te gustaría conocer?</FormLabel>
+        <Typography variant="body2" color="text.secondary">Podés elegir más de una opción.</Typography>
+        <FormGroup>
+            {[{ value: 'all', label: 'Personas de cualquier género' }, ...genderOptions].map(option => <FormControlLabel key={option.value} label={option.label} control={<Checkbox checked={value.includes(option.value)} onChange={(_, checked) => {
+                if (option.value === 'all') onChange(checked ? ['all'] : []);
+                else onChange(checked ? [...value.filter(v => v !== 'all'), option.value] : value.filter(v => v !== option.value));
+            }} />} />)}
+        </FormGroup>
+    </FormControl>;
+}
+export const IdentityStep = ({ data, onChange }: { data: any; onChange: (data: any) => void }) => <Box display="flex" flexDirection="column" gap={3}>
+    <FormControl component="fieldset">
+        <FormLabel component="legend">¿Cómo te identificás?</FormLabel>
+        <RadioGroup value={data.gender || ''} onChange={e => onChange({ ...data, gender: e.target.value })}>
+            {genderOptions.map(option => <FormControlLabel key={option.value} value={option.value} control={<Radio />} label={option.label} />)}
+        </RadioGroup>
+        {data.gender === 'other' && <TextField label="Tu identidad (opcional)" inputProps={{ maxLength: 80 }} value={data.genderCustom || ''} onChange={e => onChange({ ...data, genderCustom: e.target.value })} helperText="Podés describirla con tus propias palabras. Aparecerá en tu perfil." />}
+    </FormControl>
+    <GenderPreferences value={data.gendersAllowed || []} onChange={gendersAllowed => onChange({ ...data, gendersAllowed })} />
+</Box>;

@@ -10,13 +10,6 @@ export const PhotosStep = () => {
     const { data: profile, isLoading } = useGetMeQuery(undefined);
     const dispatch = useDispatch();
 
-    if (isLoading) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" p={4}>
-                <CircularProgress />
-            </Box>
-        );
-    }
     const [triggerSignature] = useLazyGetSignatureQuery();
     const [addPhoto] = useAddPhotoMutation();
     const [deletePhoto] = useDeletePhotoMutation();
@@ -27,6 +20,7 @@ export const PhotosStep = () => {
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
+        e.target.value = '';
         if (!file) return;
 
         // Validation: size <= 5MB
@@ -52,18 +46,18 @@ export const PhotosStep = () => {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('api_key', sigData.apiKey);
-            formData.append('timestamp', sigData.timestamp.toString());
+            Object.entries(sigData.params).forEach(([key, value]) => formData.append(key, String(value)));
             formData.append('signature', sigData.signature);
-            formData.append('folder', 'ontomatch/profiles');
 
             const res = await fetch(`https://api.cloudinary.com/v1_1/${sigData.cloudName}/image/upload`, {
                 method: 'POST',
                 body: formData
             });
             const cloudData = await res.json();
+            if (!res.ok || cloudData.public_id !== sigData.publicId) throw new Error('No se pudo subir la foto.');
 
             // 3. Register with Backend
-            await addPhoto({ url: cloudData.secure_url, publicId: cloudData.public_id }).unwrap();
+            await addPhoto({ publicId: sigData.publicId, timestamp: sigData.timestamp, proof: sigData.proof }).unwrap();
             dispatch(showToast({ message: '¡Foto subida con éxito! 📸', severity: 'success' }));
         } catch (err) {
             console.error(err);
@@ -74,7 +68,7 @@ export const PhotosStep = () => {
     };
 
     const handleDeleteRequest = (photoId: string) => {
-        if (sortedPhotos.length <= 3) {
+        if ((profile as any)?.isOnboarded && sortedPhotos.length <= 3) {
             dispatch(showToast({ message: 'Debes mantener al menos 3 fotos.', severity: 'warning' }));
             return;
         }
@@ -106,11 +100,13 @@ export const PhotosStep = () => {
 
         // Call API
         const ids = newPhotos.map(p => p.id);
-        await reorderPhotos(ids).unwrap();
+        try { await reorderPhotos(ids).unwrap(); } catch { dispatch(showToast({ message: 'No pudimos cambiar el orden. Intentá de nuevo.', severity: 'error' })); }
     };
 
     const p: any = profile;
     const sortedPhotos = [...(p?.user?.photos || [])].sort((a: any, b: any) => a.position - b.position);
+
+    if (isLoading) return <Box p={4}><CircularProgress /></Box>;
 
     return (
         <Box>
@@ -143,7 +139,7 @@ export const PhotosStep = () => {
                             <CardMedia
                                 component="img"
                                 image={getOptimizedCloudinaryUrl(photo.url, 'w_200,c_fill,q_auto,f_auto')}
-                                alt="Profile photo"
+                                alt={"Foto de perfil " + (index + 1)}
                                 sx={{
                                     width: '100%',
                                     height: '100%',
@@ -164,7 +160,7 @@ export const PhotosStep = () => {
                             }}>
                                 <IconButton
                                     size="small"
-                                    onClick={() => handleMove(index, 'left')}
+                                    aria-label="Mover foto a la izquierda" onClick={() => handleMove(index, 'left')}
                                     disabled={index === 0}
                                     sx={{ color: '#3A3A3C' }}
                                 >
@@ -172,14 +168,14 @@ export const PhotosStep = () => {
                                 </IconButton>
                                 <IconButton
                                     size="small"
-                                    onClick={() => handleDeleteRequest(photo.id)}
+                                    aria-label="Eliminar foto" onClick={() => handleDeleteRequest(photo.id)}
                                     color="error"
                                 >
                                     <Delete fontSize="small" />
                                 </IconButton>
                                 <IconButton
                                     size="small"
-                                    onClick={() => handleMove(index, 'right')}
+                                    aria-label="Mover foto a la derecha" onClick={() => handleMove(index, 'right')}
                                     disabled={index === sortedPhotos.length - 1}
                                     sx={{ color: '#3A3A3C' }}
                                 >

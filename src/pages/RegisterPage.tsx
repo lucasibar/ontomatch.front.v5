@@ -15,8 +15,8 @@ export const RegisterPage = () => {
         e.preventDefault();
         setLocalError('');
 
-        if (password.length < 6) {
-            setLocalError('La contraseña debe tener al menos 6 caracteres');
+        if (password.length < 8) {
+            setLocalError('La contraseña debe tener al menos 8 caracteres');
             return;
         }
 
@@ -79,7 +79,7 @@ export const RegisterPage = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         margin="normal"
-                        helperText="Mínimo 6 caracteres"
+                        helperText="Mínimo 8 caracteres"
                     />
                     <TextField
                         label="Confirmar contraseña"

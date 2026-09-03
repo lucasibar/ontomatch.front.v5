@@ -2,6 +2,10 @@ import { baseApi } from '../../../shared/api/baseApi';
 
 export const profileApi = baseApi.injectEndpoints({
     endpoints: (builder: any) => ({
+        completeProfile: builder.mutation({
+            query: (body: any) => ({ url: '/profiles/complete', method: 'POST', body }),
+            invalidatesTags: ['User'],
+        }),
         getMe: builder.query({
             query: () => '/profiles/me',
             providesTags: ['User'],
@@ -77,7 +81,7 @@ export const profileApi = baseApi.injectEndpoints({
             query: () => '/media/signature',
         }),
         searchLocations: builder.query({
-            query: (q: string) => `/locations?q=${q}`,
+            query: (q: string) => ({ url: '/locations', params: { q } }),
         }),
         getProfileById: builder.query({
             query: (id: string) => `/profiles/${id}`,
@@ -87,6 +91,7 @@ export const profileApi = baseApi.injectEndpoints({
 });
 
 export const {
+    useCompleteProfileMutation,
     useGetMeQuery,
     useGetPreferencesQuery,
     useUpdateProfileMutation,

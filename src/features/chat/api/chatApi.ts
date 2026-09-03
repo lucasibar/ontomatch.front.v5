@@ -6,6 +6,9 @@ export interface Message {
     senderUserId: string;
     body: string;
     createdAt: string;
+    clientMessageId?: string;
+    readAt?: string | null;
+    conversation?: { id: string };
 }
 
 export interface Conversation {
@@ -28,27 +31,32 @@ export interface Conversation {
 
 export const chatApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
-        getConversations: builder.query<Conversation[], void>({
-            query: () => '/conversations',
+        getUnreadCounts: builder.query<{ regular: number; support: number }, void>({
+            query: () => '/conversations/unread-counts',
             providesTags: ['Conversation'],
         }),
-        getSupportConversations: builder.query<Conversation[], void>({
-            query: () => '/conversations/support',
+        getConversations: builder.query<Conversation[], number | void>({
+            query: (offset = 0) => ({ url: '/conversations', params: { offset } }),
             providesTags: ['Conversation'],
         }),
-        getMessages: builder.query<Message[], { conversationId: string }>({
-            query: ({ conversationId }) => `/conversations/${conversationId}/messages`,
-            providesTags: (_result, _error, arg) => [{ type: 'Conversation', id: arg.conversationId }],
+        getSupportConversations: builder.query<Conversation[], number | void>({
+            query: (offset = 0) => ({ url: '/conversations/support', params: { offset } }),
+            providesTags: ['Conversation'],
+        }),
+        getMessages: builder.query<{ data: Message[]; nextCursor: string | null }, { conversationId: string; before?: string }>({
+            query: ({ conversationId, before }) => ({ url: `/conversations/${conversationId}/messages`, params: { before } }),
+            keepUnusedDataFor: 20,
         }),
         sendMessage: builder.mutation<void, { conversationId: string; body: string }>({
             queryFn: () => ({ data: undefined }),
         }),
-        markAsRead: builder.mutation<void, { conversationId: string }>({
-            query: ({ conversationId }) => ({
+        markAsRead: builder.mutation<void, { conversationId: string; throughId: string }>({
+            query: ({ conversationId, throughId }) => ({
                 url: `/conversations/${conversationId}/read`,
                 method: 'PATCH',
+                body: { throughId },
             }),
-            invalidatesTags: (_result, _error, arg) => ['Conversation', { type: 'Conversation', id: arg.conversationId }],
+            invalidatesTags: ['Conversation'],
         }),
         blockUser: builder.mutation<void, { blockedId: string }>({
             query: (body) => ({
@@ -70,9 +78,11 @@ export const chatApi = baseApi.injectEndpoints({
 });
 
 export const {
+    useGetUnreadCountsQuery,
     useGetConversationsQuery,
     useGetSupportConversationsQuery,
     useGetMessagesQuery,
+    useLazyGetMessagesQuery,
     useBlockUserMutation,
     useReportUserMutation,
     useMarkAsReadMutation,

@@ -3,7 +3,8 @@ import { Favorite, Person, Style, AdminPanelSettings, BarChart } from '@mui/icon
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useCheckAdminQuery } from '../api/adminApi';
-import { useGetConversationsQuery, useGetSupportConversationsQuery } from '../../features/chat/api/chatApi';
+import { useDispatch } from 'react-redux';
+import { chatApi, useGetUnreadCountsQuery } from '../../features/chat/api/chatApi';
 import { socketService } from '../api/socket';
 
 export const MainLayout = () => {
@@ -17,33 +18,32 @@ export const MainLayout = () => {
 
     const token = localStorage.getItem('token');
 
-    // Fetch conversation data to compute unread counts
-    const { data: conversations, refetch: refetchConversations } = useGetConversationsQuery(undefined, { skip: !token });
-    const { data: supportConversations, refetch: refetchSupport } = useGetSupportConversationsQuery(undefined, { skip: !token || !isAdmin });
+    const dispatch = useDispatch();
+    // Fetch aggregate counts without loading conversation histories.
+    const { data: counts } = useGetUnreadCountsQuery(undefined, { skip: !token });
 
-    // Global real-time socket connection for notification badges
+
+    // Refresh small summaries for sent/received messages; message history stays untouched.
     useEffect(() => {
         if (!token) return;
-
         const socket = socketService.connect(token);
-        if (socket) {
-            // Listen for any incoming messages in real-time to update counts immediately
-            socket.on('newMessageNotification', () => {
-                refetchConversations();
-                if (isAdmin) refetchSupport();
-            });
-        }
-
-        return () => {
-            if (socket) {
-                socket.off('newMessageNotification');
-            }
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const refresh = () => {
+            clearTimeout(timer);
+            timer = setTimeout(() => dispatch(chatApi.util.invalidateTags(['Conversation'])), 250);
         };
-    }, [token, isAdmin, refetchConversations, refetchSupport]);
+        socket.on('receiveMessage', refresh);
+        socket.on('connect', refresh);
+        return () => {
+            clearTimeout(timer);
+            socket.off('receiveMessage', refresh);
+            socket.off('connect', refresh);
+        };
+    }, [token, dispatch]);
 
     // Compute unread totals
-    const unreadChats = conversations?.reduce((sum, c) => sum + (c.unreadCount || 0), 0) || 0;
-    const unreadSupport = supportConversations?.reduce((sum, c) => sum + (c.unreadCount || 0), 0) || 0;
+    const unreadChats = (counts?.regular || 0) + (isAdmin ? 0 : counts?.support || 0);
+    const unreadSupport = counts?.support || 0;
 
     // Sync state with URL location
     useEffect(() => {

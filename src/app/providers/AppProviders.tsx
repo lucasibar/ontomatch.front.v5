@@ -9,7 +9,7 @@ const theme = createTheme({
             main: '#3A3A3C', // Soft Charcoal instead of harsh black
         },
         secondary: {
-            main: '#8E8E93', // Delicate gray
+            main: '#66676D', // Delicate gray
         },
         background: {
             default: '#FAF9F7', // Warm, very subtle off-white (Cream/Sand)
@@ -17,7 +17,7 @@ const theme = createTheme({
         },
         text: {
             primary: '#2C2C2E', // Very dark gray, not pure black
-            secondary: '#8E8E93',
+            secondary: '#66676D',
         },
         divider: '#EBEBEB',
     },
@@ -29,8 +29,8 @@ const theme = createTheme({
         h4: { fontFamily: '"Outfit", sans-serif', fontWeight: 400, color: '#2C2C2E', fontSize: '2rem' },
         h5: { fontFamily: '"Outfit", sans-serif', fontWeight: 400, color: '#2C2C2E' },
         h6: { fontFamily: '"Outfit", sans-serif', fontWeight: 400, color: '#3A3A3C', fontSize: '1.1rem' },
-        body1: { fontSize: '0.95rem', fontWeight: 300, color: '#3A3A3C' },
-        body2: { fontSize: '0.85rem', fontWeight: 300, color: '#8E8E93' },
+        body1: { fontSize: '0.95rem', fontWeight: 400 },
+        body2: { fontSize: '0.85rem', fontWeight: 400 },
         button: { textTransform: 'none', fontWeight: 400, letterSpacing: '0.02em', fontSize: '0.95rem' },
     },
     shape: {
@@ -73,7 +73,7 @@ const theme = createTheme({
                     borderColor: '#D1D1D6',
                     color: '#3A3A3C',
                     '&:hover': {
-                        borderColor: '#8E8E93',
+                        borderColor: '#66676D',
                         backgroundColor: 'transparent'
                     }
                 }

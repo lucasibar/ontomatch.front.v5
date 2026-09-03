@@ -1,22 +1,31 @@
 import { createBrowserRouter, Outlet } from 'react-router-dom';
-import { LoginPage, RegisterPage, ForgotPasswordPage, OnboardingPage, SwipesPage, MatchesPage, ProfilePage, AdminChatsPage, AdminMetricsPage } from '../pages';
+import { lazy, Suspense } from 'react';
 import { MainLayout } from '../shared/layouts/MainLayout';
 import { ProtectedRoute } from '../shared/ui/ProtectedRoute';
 import { RequireOnboarding } from '../shared/ui/RequireOnboarding';
 import { PublicRoute } from '../shared/ui/PublicRoute';
+const AdminMetricsPage = lazy(() => import('../pages/AdminMetricsPage').then(m => ({ default: m.AdminMetricsPage })));
+const AdminChatsPage = lazy(() => import('../pages/AdminChatsPage').then(m => ({ default: m.AdminChatsPage })));
+const ProfilePage = lazy(() => import('../pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
+const MatchesPage = lazy(() => import('../pages/MatchesPage').then(m => ({ default: m.MatchesPage })));
+const SwipesPage = lazy(() => import('../pages/SwipesPage').then(m => ({ default: m.SwipesPage })));
+const OnboardingPage = lazy(() => import('../pages/OnboardingPage').then(m => ({ default: m.OnboardingPage })));
+const ForgotPasswordPage = lazy(() => import('../pages/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
+const RegisterPage = lazy(() => import('../pages/RegisterPage').then(m => ({ default: m.RegisterPage })));
+const LoginPage = lazy(() => import('../pages/LoginPage').then(m => ({ default: m.LoginPage })));
 
 export const router = createBrowserRouter([
     {
         path: '/login',
-        element: <PublicRoute><LoginPage /></PublicRoute>,
+        element: <PublicRoute><Suspense fallback={<div role="status" style={{ padding: 24 }}>Cargando…</div>}><LoginPage /></Suspense></PublicRoute>,
     },
     {
         path: '/register',
-        element: <PublicRoute><RegisterPage /></PublicRoute>,
+        element: <PublicRoute><Suspense fallback={<div role="status" style={{ padding: 24 }}>Cargando…</div>}><RegisterPage /></Suspense></PublicRoute>,
     },
     {
         path: '/forgot-password',
-        element: <PublicRoute><ForgotPasswordPage /></PublicRoute>,
+        element: <PublicRoute><Suspense fallback={<div role="status" style={{ padding: 24 }}>Cargando…</div>}><ForgotPasswordPage /></Suspense></PublicRoute>,
     },
     // Protected Routes (require Auth)
     {
@@ -24,7 +33,7 @@ export const router = createBrowserRouter([
         children: [
             {
                 path: '/onboarding',
-                element: <OnboardingPage />,
+                element: <Suspense fallback={<div role="status" style={{ padding: 24 }}>Cargando…</div>}><OnboardingPage /></Suspense>,
             },
             // Routes strictly requiring Onboarding completion
             {
@@ -35,31 +44,31 @@ export const router = createBrowserRouter([
                         children: [
                             {
                                 index: true,
-                                element: <SwipesPage />,
+                                element: <Suspense fallback={<div role="status" style={{ padding: 24 }}>Cargando…</div>}><SwipesPage /></Suspense>,
                             },
                             {
                                 path: '/swipes',
-                                element: <SwipesPage />,
+                                element: <Suspense fallback={<div role="status" style={{ padding: 24 }}>Cargando…</div>}><SwipesPage /></Suspense>,
                             },
                             {
                                 path: '/matches',
-                                element: <MatchesPage />,
+                                element: <Suspense fallback={<div role="status" style={{ padding: 24 }}>Cargando…</div>}><MatchesPage /></Suspense>,
                             },
                             {
                                 path: '/chat',
-                                element: <MatchesPage />,
+                                element: <Suspense fallback={<div role="status" style={{ padding: 24 }}>Cargando…</div>}><MatchesPage /></Suspense>,
                             },
                             {
                                 path: '/profile',
-                                element: <ProfilePage />,
+                                element: <Suspense fallback={<div role="status" style={{ padding: 24 }}>Cargando…</div>}><ProfilePage /></Suspense>,
                             },
                             {
                                 path: '/admin/chats',
-                                element: <AdminChatsPage />,
+                                element: <Suspense fallback={<div role="status" style={{ padding: 24 }}>Cargando…</div>}><AdminChatsPage /></Suspense>,
                             },
                             {
                                 path: '/admin/metrics',
-                                element: <AdminMetricsPage />,
+                                element: <Suspense fallback={<div role="status" style={{ padding: 24 }}>Cargando…</div>}><AdminMetricsPage /></Suspense>,
                             },
                         ]
                     }

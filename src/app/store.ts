@@ -5,6 +5,18 @@ import { matchesApi } from '../features/matches/api/matchesApi';
 import authReducer, { logout } from '../features/auth/model/authSlice';
 import chatReducer from '../features/chat/model/chatSlice';
 import uiReducer, { showToast } from '../shared/model/uiSlice';
+import { setCredentials } from '../features/auth/model/authSlice';
+import { socketService } from '../shared/api/socket';
+
+const sessionCleanup: Middleware = api => next => action => {
+    const result = next(action);
+    if (logout.match(action) || setCredentials.match(action)) {
+        socketService.disconnect();
+        api.dispatch(baseApi.util.resetApiState());
+        api.dispatch(matchesApi.util.resetApiState());
+    }
+    return result;
+};
 
 export const rtkQueryErrorLogger: Middleware = (api) => (next) => (action) => {
     if (isRejectedWithValue(action)) {
@@ -12,6 +24,8 @@ export const rtkQueryErrorLogger: Middleware = (api) => (next) => (action) => {
         if (payload?.status === 401) {
             api.dispatch(logout());
             api.dispatch(showToast({ message: 'Sesión expirada. Por favor, inicia sesión nuevamente.', severity: 'warning' }));
+        } else if (payload?.status === 403 && payload?.data?.code === 'ONBOARDING_REQUIRED') {
+            api.dispatch(baseApi.util.invalidateTags(['User']));
         } else if (payload?.status === 500) {
             api.dispatch(showToast({ message: 'Error interno del servidor. Por favor, intenta más tarde.', severity: 'error' }));
         } else if (payload?.status === 'FETCH_ERROR') {
@@ -33,7 +47,7 @@ export const store = configureStore({
         ui: uiReducer,
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(baseApi.middleware, matchesApi.middleware, rtkQueryErrorLogger),
+        getDefaultMiddleware().concat(sessionCleanup, baseApi.middleware, matchesApi.middleware, rtkQueryErrorLogger),
 });
 
 setupListeners(store.dispatch);

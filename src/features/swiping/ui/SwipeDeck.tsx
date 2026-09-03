@@ -1,461 +1,112 @@
-import { useState, useEffect } from 'react';
-import { Box, Button, CircularProgress, Dialog, DialogContent, Avatar, Stack, IconButton, Typography } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Typography } from '@mui/material';
+import TuneIcon from '@mui/icons-material/Tune';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import ForumIcon from '@mui/icons-material/Forum';
-import SparklesIcon from '@mui/icons-material/AutoAwesome';
-import SwipeCard from './SwipeCard';
-import { AnimatePresence } from 'framer-motion';
+import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
+import SwipeCard from './SwipeCard';
 import { useLazyGetFeedQuery, usePostSwipeMutation } from '../api/swipesApi';
-import { useGetPreferencesQuery, useGetMeQuery } from '../../onboarding/api/profileApi';
-import { type Profile } from '../types';
-import { AppEmptyState } from '../../../shared/ui/AppEmptyState';
-import { getOptimizedCloudinaryUrl } from '../../../shared/ui/ImageWithFallback';
+import { useGetPreferencesQuery, useUpdatePreferencesMutation } from '../../onboarding/api/profileApi';
+import { PreferencesStep } from '../../onboarding/ui/PreferencesStep';
+import { GenderPreferences } from '../../onboarding/ui/IdentityStep';
+import { PartnerProfileView } from '../../chat/ui/PartnerProfileView';
+import type { Profile } from '../types';
 
-const triggerConfetti = () => {
-    if (typeof window === 'undefined') return;
-    const canvas = document.createElement('canvas');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    canvas.style.position = 'fixed';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.pointerEvents = 'none';
-    canvas.style.zIndex = '99999';
-    document.body.appendChild(canvas);
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const colors = ['#ea00d9', '#711c91', '#00b8ff', '#ffb800', '#ff4b4b'];
-    const confettiCount = 120;
-    const confetti: any[] = [];
-
-    for (let i = 0; i < confettiCount; i++) {
-        confetti.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height - canvas.height,
-            r: Math.random() * 6 + 4,
-            d: Math.random() * confettiCount,
-            color: colors[Math.floor(Math.random() * colors.length)],
-            tilt: Math.random() * 10 - 5,
-            tiltAngleIncremental: Math.random() * 0.07 + 0.02,
-            tiltAngle: 0
-        });
-    }
-
-    let frames = 0;
-
-    const draw = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        frames++;
-
-        let active = false;
-        confetti.forEach((p) => {
-            p.tiltAngle += p.tiltAngleIncremental;
-            p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
-            p.x += Math.sin(p.tiltAngle);
-            p.tilt = Math.sin(p.tiltAngle - p.r / 2) * 15;
-
-            if (p.y < canvas.height) {
-                active = true;
-            }
-
-            ctx.beginPath();
-            ctx.lineWidth = p.r;
-            ctx.strokeStyle = p.color;
-            ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
-            ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
-            ctx.stroke();
-        });
-
-        if (active && frames < 180) { // Stop after ~3 seconds
-            requestAnimationFrame(draw);
-        } else {
-            canvas.remove();
-        }
-    };
-
-    draw();
-};
-
-const SwipeDeck = () => {
+export default function SwipeDeck() {
     const navigate = useNavigate();
-    const { data: preferences } = useGetPreferencesQuery(undefined);
-    const { data: me } = useGetMeQuery(undefined);
-
-    const prefs: any = preferences;
-
-    const [triggerGetFeed, { isFetching: isFetchingMore }] = useLazyGetFeedQuery();
-    const [isLoading, setIsLoading] = useState(true);
-
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [profiles, setProfiles] = useState<Profile[]>([]);
+    const { data: rawPreferences, isError: preferencesError, refetch: retryPreferences } = useGetPreferencesQuery(undefined);
+    const preferences = rawPreferences as { ageMin: number; ageMax: number; distanceKm: number; gendersAllowed: string[] } | undefined;
+    const [getFeed, { isFetching }] = useLazyGetFeedQuery();
     const [postSwipe] = usePostSwipeMutation();
-    const [finished, setFinished] = useState(false);
-
-    const feedParams = {
-        excludeInactive: true,
-        minAge: prefs?.ageMin,
-        maxAge: prefs?.ageMax,
-        distanceKm: prefs?.distanceKm,
-        genders: prefs?.gendersAllowed,
-        gendersCustom: prefs?.gendersAllowedCustom
+    const [savePreferences, { isLoading: savingFilters }] = useUpdatePreferencesMutation();
+    const [profiles, setProfiles] = useState<Profile[]>([]);
+    const [error, setError] = useState('');
+    const [ready, setReady] = useState(false);
+    const [sending, setSending] = useState(false);
+    const busy = useRef(false);
+    const generation = useRef(0);
+    const [filters, setFilters] = useState<any>(null);
+    const [details, setDetails] = useState<string | null>(null);
+    const [match, setMatch] = useState<{ name: string; conversationId?: string } | null>(null);
+    const params = {
+        limit: 10, excludeInactive: true, minAge: preferences?.ageMin,
+        maxAge: preferences?.ageMax, distanceKm: preferences?.distanceKm,
+        genders: preferences?.gendersAllowed,
     };
 
-    // Initial feed fetch
-    useEffect(() => {
-        if (preferences) {
-            setIsLoading(true);
-            triggerGetFeed(feedParams).unwrap().then((data) => {
-                if (data && data.length > 0) {
-                    setProfiles(data);
-                    setCurrentIndex(0);
-                    setFinished(false);
-                } else {
-                    setFinished(true);
-                }
-                setIsLoading(false);
-            }).catch((err) => {
-                console.error('Failed to load initial feed:', err);
-                setFinished(true);
-                setIsLoading(false);
-            });
-        }
-    }, [preferences]);
-
-    // Match Popup State
-    const [matchModalOpen, setMatchModalOpen] = useState(false);
-    const [matchedUser, setMatchedUser] = useState<Profile | null>(null);
-    const [conversationId, setConversationId] = useState<string | null>(null);
-
-    // Handled by lazy trigger
-
-    const handleSwipe = async (direction: 'left' | 'right') => {
-        if (currentIndex >= profiles.length) return;
-
-        const profile = profiles[currentIndex];
-        const action = direction === 'right' ? 'LIKE' : 'PASS';
-
-        // Optimistic UI update: Move to next card
-        const nextIndex = currentIndex + 1;
-        setCurrentIndex(nextIndex);
-
-        // Pre-fetch logic: when 3 or fewer cards remain in stack
-        if (profiles.length - nextIndex <= 3 && !isFetchingMore && !finished) {
-            console.log('Prefetching next batch of profiles...');
-            triggerGetFeed(feedParams).unwrap().then((newBatch) => {
-                if (newBatch && newBatch.length > 0) {
-                    setProfiles((prev) => {
-                        const unique = newBatch.filter(b => !prev.some(p => p.user_id === b.user_id));
-                        return unique.length > 0 ? [...prev, ...unique] : prev;
-                    });
-                }
-            }).catch(e => {
-                console.error('Failed to prefetch feed:', e);
-            });
-        }
-
+    const refresh = async () => {
+        const current = ++generation.current;
+        setError('');
         try {
-            const result = await postSwipe({ targetUserId: profile.user_id, action }).unwrap();
-            if (result.matched) {
-                console.log("IT'S A MATCH!", result.matchId);
-                setMatchedUser(profile);
-                setConversationId(result.conversationId || null);
-                setMatchModalOpen(true);
-                triggerConfetti();
+            const result = await getFeed(params).unwrap();
+            if (current === generation.current) { setProfiles(result); setReady(true); }
+        } catch { if (current === generation.current) { setError('No pudimos cargar los perfiles.'); setReady(true); } }
+    };
+    useEffect(() => { if (preferences) void refresh(); return () => { generation.current++; }; }, [preferences]);
+
+    const swipe = async (direction: 'left' | 'right') => {
+        if (busy.current || !profiles[0]) return;
+        busy.current = true;
+        setSending(true);
+        setError('');
+        const profile = profiles[0];
+        const current = generation.current;
+        try {
+            const result = await postSwipe({ targetUserId: profile.user_id, action: direction === 'right' ? 'LIKE' : 'PASS' }).unwrap();
+            const remaining = profiles.slice(1);
+            setProfiles(remaining);
+            if (result.matched) setMatch({ name: profile.name, conversationId: result.conversationId });
+            // The swipe is committed before requesting another batch.
+            if (remaining.length <= 3) {
+                try {
+                    const batch = await getFeed(params).unwrap();
+                    if (current === generation.current) setProfiles(previous => [...previous, ...batch.filter(p => !previous.some(old => old.user_id === p.user_id))]);
+                } catch { setError('No pudimos cargar más perfiles. Tu elección ya se guardó.'); }
             }
-        } catch (error) {
-            console.error('Swipe failed', error);
-        }
+        } catch { setError('No pudimos guardar tu elección. Intentá de nuevo.'); }
+        finally { busy.current = false; setSending(false); }
     };
 
-    const currentProfile = profiles[currentIndex];
-    const nextProfile = profiles[currentIndex + 1];
-
-    if (isLoading && profiles.length === 0) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: 'background.default' }}>
-                <CircularProgress color="primary" />
+    return <Box sx={{ maxWidth: 480, mx: 'auto', px: 1.5, display: 'flex', flexDirection: 'column', height: { xs: 'calc(100dvh - 56px)', md: 'calc(100dvh - 64px)' }, minHeight: 440 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" py={1}>
+            <Typography variant="h6">Descubrir</Typography>
+            <Button startIcon={<TuneIcon />} disabled={!preferences || sending} onClick={() => { if (preferences) setFilters({ ...preferences, ageRange: [preferences.ageMin, preferences.ageMax] }); }}>Filtros</Button>
+        </Stack>
+        {preferencesError && <Alert severity="error" action={<Button onClick={retryPreferences}>Reintentar</Button>}>No pudimos cargar tus preferencias.</Alert>}
+        {error && <Alert severity="error" action={<Button disabled={sending} onClick={refresh}>Reintentar</Button>}>{error}</Alert>}
+        {!ready && !preferencesError && <CircularProgress sx={{ m: 'auto' }} />}
+        {ready && !profiles.length && <Box sx={{ m: 'auto', textAlign: 'center' }}>
+            {isFetching ? <CircularProgress /> : <><Typography variant="h6">Por ahora no hay más perfiles</Typography><Typography color="text.secondary" my={2}>Podés ajustar los filtros o volver más tarde.</Typography><Button onClick={refresh}>Volver a buscar</Button></>}
+        </Box>}
+        {profiles[0] && <>
+            <Box sx={{ position: 'relative', flex: 1, minHeight: 0, pointerEvents: sending ? 'none' : 'auto' }}>
+                {profiles[1] && <SwipeCard key={profiles[1].user_id} profile={profiles[1]} active={false} onSwipe={() => {}} onInfo={() => {}} />}
+                <SwipeCard key={profiles[0].user_id} profile={profiles[0]} active onSwipe={swipe} onInfo={() => setDetails(profiles[0].user_id)} />
             </Box>
-        );
-    }
-
-    const hasReachedEnd = profiles.length > 0 && currentIndex >= profiles.length;
-
-    if (hasReachedEnd || finished) {
-        return (
-            <AppEmptyState
-                title="¡Estás al día!"
-                description="Has visto a todos por ahora. ¡Pronto llegarán nuevas caras increíbles!"
-                icon={FavoriteIcon}
-                actionLabel="Buscar de nuevo"
-                onAction={() => {
-                    setProfiles([]);
-                    setFinished(false);
-                    setCurrentIndex(0);
-                    setIsLoading(true);
-                    triggerGetFeed(feedParams).unwrap().then((data) => {
-                        if (data && data.length > 0) {
-                            setProfiles(data);
-                        } else {
-                            setFinished(true);
-                        }
-                        setIsLoading(false);
-                    }).catch(() => {
-                        setFinished(true);
-                        setIsLoading(false);
-                    });
-                }}
-            />
-        );
-    }
-
-    // Prepare self avatar photo
-    const p: any = me;
-    const myPhotos = p?.user?.photos || [];
-    const sortedMyPhotos = [...myPhotos].sort((a: any, b: any) => a.position - b.position);
-    const mePhoto = sortedMyPhotos.length > 0 
-        ? getOptimizedCloudinaryUrl(sortedMyPhotos[0].url, 'w_200,c_fill,g_face,q_auto,f_auto') 
-        : '/logo192.png';
-
-    return (
-        <Box sx={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden', bgcolor: 'background.default' }}>
-            {/* Render Next Card (Inactive, below) */}
-            {nextProfile && (
-                <SwipeCard
-                    key={nextProfile.user_id}
-                    profile={nextProfile}
-                    active={false}
-                    onSwipe={() => { }}
-                    onInfo={() => { }}
-                />
-            )}
-
-            {/* Render Top Card (Active) */}
-            {currentProfile && (
-                <AnimatePresence>
-                    <SwipeCard
-                        key={currentProfile.user_id}
-                        profile={currentProfile}
-                        active={true}
-                        onSwipe={handleSwipe}
-                        onInfo={() => console.log('Show info')}
-                    />
-                </AnimatePresence>
-            )}
-
-            {/* PERSISTENT ACTION BUTTONS - Only show when we actually have a profile loaded */}
-            {currentProfile && (
-                <Box sx={{
-                    position: 'absolute',
-                    bottom: 30,
-                    left: 0,
-                    right: 0,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    gap: 6,
-                    zIndex: 1000,
-                    pointerEvents: 'none'
-                }}>
-                    {/* Pass Button */}
-                    <Button
-                        variant="contained"
-                        onClick={() => handleSwipe('left')}
-                        sx={{
-                            width: 70,
-                            height: 70,
-                            borderRadius: '50%',
-                            bgcolor: 'white',
-                            color: '#ff4b4b',
-                            pointerEvents: 'auto',
-                            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                            minWidth: 0,
-                            '&:hover': { bgcolor: '#ffebee' }
-                        }}
-                    >
-                        <CloseIcon sx={{ fontSize: 32 }} />
-                    </Button>
-
-                    {/* Like Button */}
-                    <Button
-                        variant="contained"
-                        onClick={() => handleSwipe('right')}
-                        sx={{
-                            width: 70,
-                            height: 70,
-                            borderRadius: '50%',
-                            bgcolor: 'white',
-                            color: '#4caf50',
-                            pointerEvents: 'auto',
-                            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                            minWidth: 0,
-                            '&:hover': { bgcolor: '#e8f5e9' }
-                        }}
-                    >
-                        <FavoriteIcon sx={{ fontSize: 32 }} />
-                    </Button>
-                </Box>
-            )}
-
-            {/* Premium real-time Match Popup */}
-            <Dialog
-                open={matchModalOpen}
-                onClose={() => setMatchModalOpen(false)}
-                fullWidth
-                maxWidth="xs"
-                PaperProps={{
-                    sx: {
-                        borderRadius: 5,
-                        background: 'rgba(255, 255, 255, 0.98)',
-                        backdropFilter: 'blur(20px)',
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-                        overflow: 'hidden',
-                        textAlign: 'center',
-                        p: 4,
-                        position: 'relative'
-                    }
-                }}
-            >
-                {/* Close Button */}
-                <IconButton
-                    onClick={() => setMatchModalOpen(false)}
-                    sx={{
-                        position: 'absolute',
-                        top: 16,
-                        right: 16,
-                        color: 'text.secondary',
-                        bgcolor: 'rgba(0,0,0,0.03)',
-                        '&:hover': { bgcolor: 'rgba(0,0,0,0.08)' }
-                    }}
-                >
-                    <CloseIcon />
-                </IconButton>
-
-                <DialogContent sx={{ p: 0, mt: 1 }}>
-                    {/* Glowing Sparkles */}
-                    <Box display="flex" justifyContent="center" mb={1.5}>
-                        <SparklesIcon sx={{ fontSize: 44, color: '#ea00d9', filter: 'drop-shadow(0 0 10px rgba(234,0,217,0.5))' }} />
-                    </Box>
-
-                    <Typography variant="h4" fontWeight={900} sx={{
-                        background: 'linear-gradient(135deg, #ea00d9 0%, #711c91 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        mb: 1
-                    }}>
-                        ¡Es un Match!
-                    </Typography>
-
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 4, px: 2 }}>
-                        Tú y <b>{matchedUser?.name}</b> se han elegido mutuamente desde el ser.
-                    </Typography>
-
-                    {/* Photos Container */}
-                    <Box display="flex" justifyContent="center" alignItems="center" position="relative" sx={{ mb: 5, height: 120 }}>
-                        {/* My Photo */}
-                        <Avatar
-                            src={mePhoto}
-                            sx={{
-                                width: 100,
-                                height: 100,
-                                border: '4px solid white',
-                                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                                transform: 'rotate(-8deg)',
-                                zIndex: 2
-                            }}
-                        />
-
-                        {/* Heart Icon Pulsing in between */}
-                        <Box sx={{
-                            position: 'absolute',
-                            zIndex: 3,
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            width: 44,
-                            height: 44,
-                            borderRadius: '50%',
-                            bgcolor: '#ea00d9',
-                            color: 'white',
-                            boxShadow: '0 0 15px rgba(234,0,217,0.5)',
-                            animation: 'pulse 1.2s infinite alternate',
-                            '@keyframes pulse': {
-                                '0%': { transform: 'scale(1)' },
-                                '100%': { transform: 'scale(1.15)' }
-                            }
-                        }}>
-                            <FavoriteIcon sx={{ fontSize: 24 }} />
-                        </Box>
-
-                        {/* Partner Photo */}
-                        <Avatar
-                            src={matchedUser?.photos?.[0]?.url 
-                                ? getOptimizedCloudinaryUrl(matchedUser.photos[0].url, 'w_200,c_fill,g_face,q_auto,f_auto') 
-                                : '/logo192.png'}
-                            sx={{
-                                width: 100,
-                                height: 100,
-                                border: '4px solid white',
-                                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                                transform: 'rotate(8deg)',
-                                marginLeft: -2,
-                                zIndex: 1
-                            }}
-                        />
-                    </Box>
-
-                    {/* Action Buttons */}
-                    <Stack spacing={1.5} width="100%">
-                        <Button
-                            variant="contained"
-                            fullWidth
-                            startIcon={<ForumIcon />}
-                            onClick={() => {
-                                setMatchModalOpen(false);
-                                navigate(`/matches?conversationId=${conversationId}`);
-                            }}
-                            sx={{
-                                background: 'linear-gradient(135deg, #ea00d9 0%, #711c91 100%)',
-                                color: 'white',
-                                py: 1.2,
-                                borderRadius: 3,
-                                fontWeight: 'bold',
-                                fontSize: '0.95rem',
-                                boxShadow: '0 8px 20px rgba(234,0,217,0.2)',
-                                '&:hover': {
-                                    boxShadow: '0 10px 25px rgba(234,0,217,0.35)',
-                                    opacity: 0.95
-                                }
-                            }}
-                        >
-                            Enviar un mensaje
-                        </Button>
-
-                        <Button
-                            variant="outlined"
-                            fullWidth
-                            onClick={() => setMatchModalOpen(false)}
-                            sx={{
-                                py: 1.2,
-                                borderRadius: 3,
-                                borderColor: '#E5E5EA',
-                                color: '#3A3A3C',
-                                fontWeight: 'semibold',
-                                '&:hover': {
-                                    borderColor: '#3A3A3C',
-                                    bgcolor: 'rgba(0,0,0,0.02)'
-                                }
-                            }}
-                        >
-                            Seguir buscando
-                        </Button>
-                    </Stack>
-                </DialogContent>
-            </Dialog>
-        </Box>
-    );
-};
-
-export default SwipeDeck;
+            <Stack direction="row" justifyContent="center" spacing={2} py={1}>
+                <Button disabled={sending} aria-label="Pasar este perfil" onClick={() => swipe('left')} startIcon={<CloseIcon />}>Pasar</Button>
+                <Button disabled={sending} onClick={() => setDetails(profiles[0].user_id)}>Ver perfil</Button>
+                <Button disabled={sending} variant="contained" onClick={() => swipe('right')} startIcon={<FavoriteIcon />}>Me gusta</Button>
+            </Stack>
+        </>}
+        <PartnerProfileView userId={details} open={!!details} onClose={() => setDetails(null)} onActionSuccess={() => { setProfiles(previous => previous.filter(p => p.user_id !== details)); setDetails(null); }} />
+        <Dialog open={!!match} onClose={() => setMatch(null)} maxWidth="xs" fullWidth>
+            <DialogTitle>¡Se eligieron!</DialogTitle>
+            <DialogContent><Typography>A vos y a {match?.name} les gustaría conocerse. Ya pueden conversar.</Typography></DialogContent>
+            <DialogActions><Button onClick={() => setMatch(null)}>Seguir descubriendo</Button><Button variant="contained" onClick={() => navigate(match?.conversationId ? '/matches?conversationId=' + match.conversationId : '/matches')}>Ir al chat</Button></DialogActions>
+        </Dialog>
+        <Dialog open={!!filters} onClose={() => { if (!savingFilters) setFilters(null); }} maxWidth="xs" fullWidth>
+            <DialogTitle>Qué estás buscando</DialogTitle>
+            <DialogContent>{filters && <Stack spacing={3} pt={1}>
+                <GenderPreferences value={filters.gendersAllowed || []} onChange={value => setFilters({ ...filters, gendersAllowed: value })} />
+                <PreferencesStep data={filters} onChange={setFilters} />
+            </Stack>}</DialogContent>
+            <DialogActions><Button disabled={savingFilters} onClick={() => setFilters(null)}>Cancelar</Button><Button variant="contained" disabled={savingFilters || !filters?.gendersAllowed?.length} onClick={async () => {
+                try {
+                    await savePreferences({ ageMin: filters.ageRange[0], ageMax: filters.ageRange[1], distanceKm: filters.distanceKm, gendersAllowed: filters.gendersAllowed, gendersAllowedCustom: [] }).unwrap();
+                    setFilters(null);
+                } catch { setError('No pudimos guardar los filtros.'); }
+            }}>{savingFilters ? 'Guardando…' : 'Aplicar filtros'}</Button></DialogActions>
+        </Dialog>
+    </Box>;
+}

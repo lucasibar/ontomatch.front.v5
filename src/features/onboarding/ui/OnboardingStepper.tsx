@@ -8,7 +8,7 @@ import { BioStep } from './BioStep';
 import { LocationStep } from './LocationStep';
 import { PreferencesStep } from './PreferencesStep';
 import { PhotosStep } from './PhotosStep';
-import { useUpdateProfileMutation, useGetMeQuery, useUpdatePreferencesMutation, useGetPreferencesQuery } from '../api/profileApi';
+import { useUpdateProfileMutation, useGetMeQuery, useCompleteProfileMutation, useGetPreferencesQuery } from '../api/profileApi';
 import { showToast } from '../../../shared/model/uiSlice';
 
 const steps = ['Datos Personales', 'Identidad', 'Sobre mí', 'Ubicación', 'Preferencias', 'Fotos'];
@@ -16,8 +16,10 @@ const steps = ['Datos Personales', 'Identidad', 'Sobre mí', 'Ubicación', 'Pref
 export const OnboardingStepper = () => {
     const [activeStep, setActiveStep] = useState(0);
     const [formData, setFormData] = useState<any>({});
-    const [updateProfile, { isLoading }] = useUpdateProfileMutation();
-    const [updatePreferences] = useUpdatePreferencesMutation();
+    const [updateProfile, { isLoading: isSavingDraft }] = useUpdateProfileMutation();
+    const [completeProfile, { isLoading: isCompleting }] = useCompleteProfileMutation();
+    const isLoading = isSavingDraft || isCompleting;
+    const draftKey = 'ontomatch_onboarding_draft:' + (JSON.parse(localStorage.getItem('user') || '{}').id || 'pending');
     const { data: profile } = useGetMeQuery(undefined);
     const { data: preferences } = useGetPreferencesQuery(undefined);
     const navigate = useNavigate();
@@ -25,7 +27,7 @@ export const OnboardingStepper = () => {
 
     // Preload local draft on mount
     useEffect(() => {
-        const draft = localStorage.getItem('ontomatch_onboarding_draft');
+        const draft = localStorage.getItem(draftKey);
         if (draft) {
             try {
                 const parsed = JSON.parse(draft);
@@ -33,7 +35,7 @@ export const OnboardingStepper = () => {
                     setFormData((prev: any) => ({ ...prev, ...parsed.formData }));
                 }
                 if (typeof parsed.activeStep === 'number') {
-                    setActiveStep(parsed.activeStep);
+                    setActiveStep(Math.max(0, Math.min(steps.length - 1, parsed.activeStep)));
                 }
             } catch (e) {
                 console.error('Failed to parse onboarding draft:', e);
@@ -44,7 +46,7 @@ export const OnboardingStepper = () => {
     // Save draft on change of formData or activeStep
     useEffect(() => {
         if (Object.keys(formData).length > 0) {
-            localStorage.setItem('ontomatch_onboarding_draft', JSON.stringify({
+            localStorage.setItem(draftKey, JSON.stringify({
                 formData,
                 activeStep
             }));
@@ -59,10 +61,7 @@ export const OnboardingStepper = () => {
             
             if (p.name && p.name !== 'New User') existingData.name = p.name;
             if (p.birthdate) {
-                const d = new Date(p.birthdate);
-                if (!isNaN(d.getTime())) {
-                    existingData.birthdate = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-                }
+                existingData.birthdate = p.birthdate.slice(0, 10).split('-').reverse().join('/');
             }
             if (p.height) existingData.height = p.height;
             if (p.gender) existingData.gender = p.gender;
@@ -102,7 +101,7 @@ export const OnboardingStepper = () => {
 
         if (match) {
             const [, day, month, year] = match;
-            return new Date(`${year}-${month}-${day}`).toISOString();
+            const value = year + '-' + month + '-' + day; const date = new Date(value); return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value ? value : null;
         }
 
         const date = new Date(dateStr);
@@ -156,10 +155,6 @@ export const OnboardingStepper = () => {
                 dispatch(showToast({ message: 'Por favor seleccioná tu identidad de género', severity: 'warning' }));
                 return;
             }
-            if (formData.gender === 'other' && (!formData.genderCustom || formData.genderCustom.trim().length === 0)) {
-                dispatch(showToast({ message: 'Por favor especificá tu identidad de género alternativa', severity: 'warning' }));
-                return;
-            }
             if (!formData.gendersAllowed || formData.gendersAllowed.length === 0) {
                 dispatch(showToast({ message: 'Por favor seleccioná al menos un género que buscás', severity: 'warning' }));
                 return;
@@ -193,7 +188,16 @@ export const OnboardingStepper = () => {
         }
 
         if (activeStep < steps.length - 1) {
-            setActiveStep((prev) => prev + 1);
+            try {
+                await updateProfile({
+                    name: formData.name, birthdate: formatDateForApi(formData.birthdate),
+                    coachingSchool: formData.coachingSchool, lookingFor: formData.lookingFor,
+                    height: formData.height || undefined, gender: formData.gender,
+                    genderCustom: formData.genderCustom, bio: formData.bio,
+                    locationId: formData.locationId || undefined, neighborhood: formData.neighborhood,
+                }).unwrap();
+                setActiveStep((prev) => prev + 1);
+            } catch { dispatch(showToast({ message: 'No pudimos guardar este paso. Intentá de nuevo.', severity: 'error' })); }
             return;
         }
 
@@ -209,33 +213,26 @@ export const OnboardingStepper = () => {
             const profilePayload = {
                 name: formData.name,
                 birthdate: birthdateISO,
-                height: formData.height,
+                height: formData.height || undefined,
                 gender: formData.gender,
                 genderCustom: formData.genderCustom,
                 bio: formData.bio,
                 locationText: formData.locationText,
-                locationId: formData.locationId,
+                locationId: formData.locationId || undefined,
                 neighborhood: formData.neighborhood,
                 coachingSchool: formData.coachingSchool,
                 lookingFor: formData.lookingFor,
-                isOnboarded: true,
             };
-            await updateProfile(profilePayload).unwrap();
-
-            const customs = formData.gendersAllowedCustomStr
-                ? formData.gendersAllowedCustomStr.split(',').map((s: string) => s.trim()).filter(Boolean)
-                : (formData.gendersAllowedCustom || []);
-
-            await updatePreferences({
+            await completeProfile({ profile: profilePayload, preferences: {
                 distanceKm: formData.distanceKm || 50,
                 ageMin: formData.ageRange?.[0] || 18,
                 ageMax: formData.ageRange?.[1] || 99,
                 gendersAllowed: formData.gendersAllowed || [],
-                gendersAllowedCustom: customs
-            }).unwrap();
+                gendersAllowedCustom: []
+            } }).unwrap();
 
             dispatch(showToast({ message: '¡Perfil completado! Bienvenido a OntoMatch 🎉', severity: 'success' }));
-            localStorage.removeItem('ontomatch_onboarding_draft');
+            localStorage.removeItem(draftKey);
             navigate('/');
         } catch (err) {
             console.error(err);
