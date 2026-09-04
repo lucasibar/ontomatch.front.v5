@@ -8,8 +8,9 @@ import { BioStep } from './BioStep';
 import { LocationStep } from './LocationStep';
 import { PreferencesStep } from './PreferencesStep';
 import { PhotosStep } from './PhotosStep';
-import { useUpdateProfileMutation, useGetMeQuery, useCompleteProfileMutation, useGetPreferencesQuery } from '../api/profileApi';
+import { profileApi, useUpdateProfileMutation, useGetMeQuery, useCompleteProfileMutation, useGetPreferencesQuery } from '../api/profileApi';
 import { showToast } from '../../../shared/model/uiSlice';
+import type { AppDispatch } from '../../../app/store';
 
 const steps = ['Datos Personales', 'Identidad', 'Sobre mí', 'Ubicación', 'Preferencias', 'Fotos'];
 
@@ -24,7 +25,7 @@ export const OnboardingStepper = () => {
     const { data: profile } = useGetMeQuery(undefined);
     const { data: preferences } = useGetPreferencesQuery(undefined);
     const navigate = useNavigate();
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
     const handleFormChange = (nextData: any) => {
         setFormData(nextData);
@@ -241,7 +242,7 @@ export const OnboardingStepper = () => {
                 coachingSchool: formData.coachingSchool,
                 lookingFor: formData.lookingFor,
             };
-            await completeProfile({ profile: profilePayload, preferences: {
+            const completedProfile = await completeProfile({ profile: profilePayload, preferences: {
                 distanceKm: formData.distanceKm || 50,
                 ageMin: formData.ageRange?.[0] || 18,
                 ageMax: formData.ageRange?.[1] || 99,
@@ -249,6 +250,7 @@ export const OnboardingStepper = () => {
                 gendersAllowedCustom: []
             } }).unwrap();
 
+            dispatch(profileApi.util.upsertQueryData('getMe', undefined, completedProfile));
             dispatch(showToast({ message: '¡Perfil completado! Bienvenido a OntoMatch 🎉', severity: 'success' }));
             localStorage.removeItem(draftKey);
             navigate('/');

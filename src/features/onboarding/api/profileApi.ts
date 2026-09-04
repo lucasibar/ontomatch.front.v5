@@ -5,6 +5,14 @@ export const profileApi = baseApi.injectEndpoints({
         completeProfile: builder.mutation({
             query: (body: any) => ({ url: '/profiles/complete', method: 'POST', body }),
             invalidatesTags: ['User'],
+            async onQueryStarted(_args: any, { dispatch, queryFulfilled }: any) {
+                try {
+                    const { data } = await queryFulfilled;
+                    dispatch(profileApi.util.upsertQueryData('getMe', undefined, data));
+                } catch {
+                    // El formulario conserva sus datos para que la persona pueda reintentar.
+                }
+            },
         }),
         getMe: builder.query({
             query: () => '/profiles/me',

@@ -4,10 +4,10 @@ import { useGetMeQuery } from '../../features/onboarding/api/profileApi';
 import { Box, CircularProgress, Alert, Button } from '@mui/material';
 
 export const RequireOnboarding = () => {
-    const { data: user, isLoading, isError, refetch } = useGetMeQuery(undefined);
+    const { data: user, isLoading, isFetching, isError, refetch } = useGetMeQuery(undefined);
     const location = useLocation();
 
-    if (isLoading) {
+    if (isLoading || isFetching) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" height="100vh" bgcolor="background.default">
                 <CircularProgress />

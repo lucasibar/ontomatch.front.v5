@@ -1,7 +1,15 @@
 import { Container, Typography, Box } from '@mui/material';
 import { OnboardingStepper } from '../features/onboarding/ui/OnboardingStepper';
+import { Navigate } from 'react-router-dom';
+import { useGetMeQuery } from '../features/onboarding/api/profileApi';
 
 export const OnboardingPage = () => {
+    const { data: profile, isLoading, isFetching } = useGetMeQuery(undefined);
+
+    if (!isLoading && !isFetching && (profile as any)?.isOnboarded) {
+        return <Navigate to="/" replace />;
+    }
+
     return (
         <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
             <Box textAlign="center" mb={6}>
