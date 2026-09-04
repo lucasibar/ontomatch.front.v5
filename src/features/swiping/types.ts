@@ -6,7 +6,7 @@ export interface Profile {
     distanceKm?: number;
     bio: string;
     photos?: { url: string }[];
-    gender?: string;
+    gender: string;
     neighborhood?: string;
     coachingSchool?: string;
     locationText?: string;

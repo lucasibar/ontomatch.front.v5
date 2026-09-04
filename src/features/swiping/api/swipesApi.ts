@@ -3,15 +3,12 @@ import { type Profile } from '../types';
 
 export const swipesApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
-        getFeed: builder.query<Profile[], { excludeInactive?: boolean, minAge?: number, maxAge?: number, genders?: string[], gendersCustom?: string[], distanceKm?: number } | void>({
+        getFeed: builder.query<Profile[], { minAge?: number, maxAge?: number, genders?: string[], distanceKm?: number, limit?: number } | void>({
             query: (params) => {
                 if (!params) return { url: '/discovery/feed' };
                 const queryParams: any = { ...params };
                 if (Array.isArray(params.genders)) {
                     queryParams.genders = params.genders.join(',');
-                }
-                if (Array.isArray(params.gendersCustom)) {
-                    queryParams.gendersCustom = params.gendersCustom.join(',');
                 }
                 return {
                     url: '/discovery/feed',
@@ -28,7 +25,10 @@ export const swipesApi = baseApi.injectEndpoints({
                 body: { targetUserId, action },
             }),
         }),
+        restartPassedProfiles: builder.mutation<{ resetCount: number, newProfilesAvailable: boolean }, void>({
+            query: () => ({ url: '/discovery/restart-passes', method: 'POST' }),
+        }),
     }),
 });
 
-export const { useGetFeedQuery, useLazyGetFeedQuery, usePostSwipeMutation } = swipesApi;
+export const { useGetFeedQuery, useLazyGetFeedQuery, usePostSwipeMutation, useRestartPassedProfilesMutation } = swipesApi;

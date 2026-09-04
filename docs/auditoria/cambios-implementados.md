@@ -39,7 +39,7 @@ Esta entrega aplica la primera tanda de correcciones del análisis. Los cambios 
 - Se conserva Supabase/PostgreSQL/PostGIS y la búsqueda de localidades existente. La ubicación pública sigue siendo una localidad; no se publica una ubicación GPS precisa.
 - Elegir localidad guarda coordenadas y geometría en la misma operación del perfil. Se eliminó la actualización masiva de geometrías en cada consulta del feed.
 - La búsqueda de localidades devuelve solo ID, localidad y provincia, hasta 10 resultados; tiene límite de longitud y debounce en la interfaz.
-- La nueva tanda del feed se solicita después de confirmar el swipe. Un error de guardado conserva el perfil visible y permite reintentar.
+- La nueva tanda del feed se solicita en segundo plano después de confirmar el swipe, cuando quedan 3 perfiles. La precarga no bloquea el siguiente swipe. Un error de guardado conserva el perfil visible y permite reintentar.
 - Los pases no se borran automáticamente al agotar perfiles.
 - Los likes mutuos se serializan por pareja para evitar crear matches duplicados.
 - Filtros accesibles desde Descubrir: edad, distancia y selección múltiple de géneros, incluida la opción de cualquier género.
@@ -103,3 +103,18 @@ Esta tanda no cierra todos los hallazgos del análisis original:
 - Correo verificado, rotación de secretos que pudieran haber estado expuestos, certificado TLS de la conexión a Supabase y configuración de proxy de Render requieren comprobar la configuración real.
 - Los límites de intentos están en memoria. Antes de usar varias instancias hacen falta límites compartidos y distribución de eventos entre sockets de distintas instancias.
 - Queda medir consultas con EXPLAIN en Supabase y latencia en Render; esta entrega no puede afirmar tiempos de respuesta reales.
+
+## Ajuste posterior: aplicación vacía y vueltas de Descubrir
+
+Solicitado el 3 de septiembre de 2026:
+
+- El género es obligatorio para completar y publicar un perfil. La columna admite NULL solo durante el borrador del onboarding; Descubrir exige gender no nulo.
+- Los únicos filtros elegibles son edad, distancia y uno o varios géneros. La opción "Personas de cualquier género" muestra todas las categorías.
+- Se eliminó la exclusión por último inicio de sesión. Siguen fuera los perfiles incompletos, suspendidos, bloqueados, el propio usuario y el perfil administrativo.
+- El feed entrega 10 perfiles por solicitud, con máximo técnico de 30.
+- Un LIKE o PASS excluye el perfil durante la vuelta actual.
+- Cuando no quedan perfiles elegibles sin decisión, la interfaz ofrece dos opciones. "Esperar perfiles nuevos" conserva todos los PASS. "Revisar perfiles que pasé" vuelve a comprobar dentro de una transacción y, sólo por esa acción explícita, elimina todos los PASS aplicables a los filtros actuales para comenzar el recorrido completo desde el principio.
+- Si aparece un perfil nuevo entre la pantalla vacía y la acción de reinicio, se muestra ese perfil y se conservan los PASS anteriores.
+- Los LIKE, matches y bloqueos no se reciclan.
+- El SQL manual para vaciar los datos es el archivo del backend docs/cambios/02-vaciar-datos.sql. Conserva locations y migrations.
+- El SQL no elimina los archivos físicos de Cloudinary. La carpeta ontomatch/profiles debe limpiarse allí por separado.

@@ -19,12 +19,12 @@ export function GenderPreferences({ value, onChange }: { value: string[]; onChan
     </FormControl>;
 }
 export const IdentityStep = ({ data, onChange }: { data: any; onChange: (data: any) => void }) => <Box display="flex" flexDirection="column" gap={3}>
-    <FormControl component="fieldset">
-        <FormLabel component="legend">¿Cómo te identificás?</FormLabel>
+    <FormControl component="fieldset" required>
+        <FormLabel component="legend">¿Cómo te identificás? (obligatorio)</FormLabel>
         <RadioGroup value={data.gender || ''} onChange={e => onChange({ ...data, gender: e.target.value })}>
-            {genderOptions.map(option => <FormControlLabel key={option.value} value={option.value} control={<Radio />} label={option.label} />)}
+            {genderOptions.map(option => <FormControlLabel key={option.value} value={option.value} control={<Radio required />} label={option.label} />)}
         </RadioGroup>
-        {data.gender === 'other' && <TextField label="Tu identidad (opcional)" inputProps={{ maxLength: 80 }} value={data.genderCustom || ''} onChange={e => onChange({ ...data, genderCustom: e.target.value })} helperText="Podés describirla con tus propias palabras. Aparecerá en tu perfil." />}
+        {data.gender === 'other' && <TextField label="Cómo describís tu identidad (opcional)" inputProps={{ maxLength: 80 }} value={data.genderCustom || ''} onChange={e => onChange({ ...data, genderCustom: e.target.value })} helperText="Podés describirla con tus propias palabras. Aparecerá en tu perfil." />}
     </FormControl>
     <GenderPreferences value={data.gendersAllowed || []} onChange={gendersAllowed => onChange({ ...data, gendersAllowed })} />
 </Box>;

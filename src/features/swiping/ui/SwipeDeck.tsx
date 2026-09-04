@@ -5,7 +5,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 import SwipeCard from './SwipeCard';
-import { useLazyGetFeedQuery, usePostSwipeMutation } from '../api/swipesApi';
+import { useLazyGetFeedQuery, usePostSwipeMutation, useRestartPassedProfilesMutation } from '../api/swipesApi';
 import { useGetPreferencesQuery, useUpdatePreferencesMutation } from '../../onboarding/api/profileApi';
 import { PreferencesStep } from '../../onboarding/ui/PreferencesStep';
 import { GenderPreferences } from '../../onboarding/ui/IdentityStep';
@@ -18,18 +18,21 @@ export default function SwipeDeck() {
     const preferences = rawPreferences as { ageMin: number; ageMax: number; distanceKm: number; gendersAllowed: string[] } | undefined;
     const [getFeed, { isFetching }] = useLazyGetFeedQuery();
     const [postSwipe] = usePostSwipeMutation();
+    const [restartPassedProfiles, { isLoading: restarting }] = useRestartPassedProfilesMutation();
     const [savePreferences, { isLoading: savingFilters }] = useUpdatePreferencesMutation();
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [error, setError] = useState('');
     const [ready, setReady] = useState(false);
     const [sending, setSending] = useState(false);
     const busy = useRef(false);
+    const prefetching = useRef(false);
     const generation = useRef(0);
     const [filters, setFilters] = useState<any>(null);
     const [details, setDetails] = useState<string | null>(null);
     const [match, setMatch] = useState<{ name: string; conversationId?: string } | null>(null);
+    const [waiting, setWaiting] = useState(false);
     const params = {
-        limit: 10, excludeInactive: true, minAge: preferences?.ageMin,
+        limit: 10, minAge: preferences?.ageMin,
         maxAge: preferences?.ageMax, distanceKm: preferences?.distanceKm,
         genders: preferences?.gendersAllowed,
     };
@@ -39,8 +42,31 @@ export default function SwipeDeck() {
         setError('');
         try {
             const result = await getFeed(params).unwrap();
-            if (current === generation.current) { setProfiles(result); setReady(true); }
+            if (current === generation.current) { setProfiles(result); setReady(true); setWaiting(false); }
         } catch { if (current === generation.current) { setError('No pudimos cargar los perfiles.'); setReady(true); } }
+    };
+
+    const prefetch = () => {
+        if (prefetching.current) return;
+        prefetching.current = true;
+        const current = generation.current;
+        void getFeed(params).unwrap()
+            .then(batch => {
+                if (current === generation.current) {
+                    setProfiles(previous => [...previous, ...batch.filter(p => !previous.some(old => old.user_id === p.user_id))]);
+                }
+            })
+            .catch(() => setError('No pudimos cargar más perfiles. Tu elección ya se guardó.'))
+            .finally(() => { prefetching.current = false; });
+    };
+
+    const restartRound = async () => {
+        setError('');
+        try {
+            const result = await restartPassedProfiles().unwrap();
+            if (result.resetCount > 0 || result.newProfilesAvailable) await refresh();
+            else setError('No hay perfiles que hayas pasado para revisar con estos filtros.');
+        } catch { setError('No pudimos reiniciar el recorrido. Intentá de nuevo.'); }
     };
     useEffect(() => { if (preferences) void refresh(); return () => { generation.current++; }; }, [preferences]);
 
@@ -56,13 +82,8 @@ export default function SwipeDeck() {
             const remaining = profiles.slice(1);
             setProfiles(remaining);
             if (result.matched) setMatch({ name: profile.name, conversationId: result.conversationId });
-            // The swipe is committed before requesting another batch.
-            if (remaining.length <= 3) {
-                try {
-                    const batch = await getFeed(params).unwrap();
-                    if (current === generation.current) setProfiles(previous => [...previous, ...batch.filter(p => !previous.some(old => old.user_id === p.user_id))]);
-                } catch { setError('No pudimos cargar más perfiles. Tu elección ya se guardó.'); }
-            }
+            // La siguiente tanda llega en segundo plano y no bloquea el siguiente swipe.
+            if (remaining.length <= 3 && current === generation.current) prefetch();
         } catch { setError('No pudimos guardar tu elección. Intentá de nuevo.'); }
         finally { busy.current = false; setSending(false); }
     };
@@ -75,8 +96,19 @@ export default function SwipeDeck() {
         {preferencesError && <Alert severity="error" action={<Button onClick={retryPreferences}>Reintentar</Button>}>No pudimos cargar tus preferencias.</Alert>}
         {error && <Alert severity="error" action={<Button disabled={sending} onClick={refresh}>Reintentar</Button>}>{error}</Alert>}
         {!ready && !preferencesError && <CircularProgress sx={{ m: 'auto' }} />}
-        {ready && !profiles.length && <Box sx={{ m: 'auto', textAlign: 'center' }}>
-            {isFetching ? <CircularProgress /> : <><Typography variant="h6">Por ahora no hay más perfiles</Typography><Typography color="text.secondary" my={2}>Podés ajustar los filtros o volver más tarde.</Typography><Button onClick={refresh}>Volver a buscar</Button></>}
+        {ready && !profiles.length && <Box sx={{ m: 'auto', textAlign: 'center', maxWidth: 380 }}>
+            {isFetching || restarting ? <CircularProgress /> : waiting ? <>
+                <Typography variant="h6">Estás al día</Typography>
+                <Typography color="text.secondary" my={2}>Tus perfiles descartados seguirán ocultos. Volvé más tarde para comprobar si hay personas nuevas.</Typography>
+                <Button onClick={refresh}>Comprobar novedades</Button>
+            </> : <>
+                <Typography variant="h6">No hay más perfiles por el momento</Typography>
+                <Typography color="text.secondary" my={2}>Ya viste todas las personas que coinciden con tus filtros. ¿Querés revisar los perfiles que pasaste o preferís esperar a que aparezcan personas nuevas?</Typography>
+                <Stack spacing={1.5}>
+                    <Button variant="contained" onClick={restartRound}>Revisar perfiles que pasé</Button>
+                    <Button onClick={() => setWaiting(true)}>Esperar perfiles nuevos</Button>
+                </Stack>
+            </>}
         </Box>}
         {profiles[0] && <>
             <Box sx={{ position: 'relative', flex: 1, minHeight: 0, pointerEvents: sending ? 'none' : 'auto' }}>
