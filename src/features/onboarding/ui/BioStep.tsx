@@ -1,7 +1,7 @@
 
 import { Box, TextField, Typography } from '@mui/material';
 
-export const BioStep = ({ data, onChange }: { data: any, onChange: (d: any) => void }) => {
+export const BioStep = ({ data, onChange, errors = {} }: { data: any, onChange: (d: any) => void, errors?: Record<string, string> }) => {
     return (
         <Box display="flex" flexDirection="column" gap={3}>
             <Typography variant="h6">Descripción Personal</Typography>
@@ -16,7 +16,8 @@ export const BioStep = ({ data, onChange }: { data: any, onChange: (d: any) => v
                 onChange={(e) => onChange({ ...data, bio: e.target.value })}
                 placeholder="Qué hacés, qué te interesa, qué estás buscando..."
                 fullWidth
-                helperText={`${(data.bio || '').length} carácteres (mínimo recomendado: 50)`}
+                error={Boolean(errors.bio)}
+                helperText={errors.bio || `${(data.bio || '').length} caracteres (mínimo: 20)`}
             />
         </Box>
     );

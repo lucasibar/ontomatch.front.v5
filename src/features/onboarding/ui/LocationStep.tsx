@@ -2,7 +2,7 @@ import { Autocomplete, TextField, Typography, Box } from '@mui/material';
 import { useLazySearchLocationsQuery } from '../api/profileApi';
 import { useState, useEffect } from 'react';
 
-export const LocationStep = ({ data, onChange }: { data: any, onChange: (d: any) => void }) => {
+export const LocationStep = ({ data, onChange, errors = {} }: { data: any, onChange: (d: any) => void, errors?: Record<string, string> }) => {
     const [search, setSearch] = useState('');
     const [trigger, { data: results, isLoading }] = useLazySearchLocationsQuery();
 
@@ -45,7 +45,7 @@ export const LocationStep = ({ data, onChange }: { data: any, onChange: (d: any)
                         </li>
                     );
                 }}
-                renderInput={(params) => <TextField {...params} label="Buscar localidad / ciudad" fullWidth />}
+                renderInput={(params) => <TextField {...params} label="Buscar localidad / ciudad" fullWidth error={Boolean(errors.locationText)} helperText={errors.locationText} />}
             />
 
             <TextField

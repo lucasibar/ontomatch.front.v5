@@ -20,7 +20,6 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import BlockIcon from '@mui/icons-material/Block';
 import PersonIcon from '@mui/icons-material/Person';
-import HeightIcon from '@mui/icons-material/Height';
 import SearchIcon from '@mui/icons-material/Search';
 import SchoolIcon from '@mui/icons-material/School';
 import { useGetProfileByIdQuery } from '../../onboarding/api/profileApi';
@@ -43,7 +42,6 @@ interface Profile {
     gender: string;
     bio: string;
     looking_for: string;
-    height?: number;
     locationText?: string;
     neighborhood?: string;
     coachingSchool?: string;
@@ -128,8 +126,8 @@ export const PartnerProfileView: React.FC<PartnerProfileViewProps> = ({ userId, 
     const getLookingForLabel = (value: string) => {
         const labels: Record<string, string> = {
             'serious': 'Algo serio',
-            'casual_dating': 'Conocernos y ver qué pasa',
-            'short_term': 'Pasarla bien (Corto plazo)'
+            'casual_dating': 'Conocernos',
+            'short_term': 'Pasarla bien'
         };
         return labels[value] || value;
     };
@@ -330,9 +328,6 @@ export const PartnerProfileView: React.FC<PartnerProfileViewProps> = ({ userId, 
 
                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 4 }}>
                                     <Chip icon={<PersonIcon />} label={getGenderLabel(profile.gender, profile.genderCustom)} sx={{ borderRadius: 2, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)' }} />
-                                    {profile.height && (
-                                        <Chip icon={<HeightIcon />} label={`${profile.height} cm`} sx={{ borderRadius: 2, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)' }} />
-                                    )}
                                     <Chip icon={<SearchIcon />} label={getLookingForLabel(profile.looking_for)} sx={{ borderRadius: 2, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)' }} />
                                     {profile.coachingSchool && (
                                         <Chip icon={<SchoolIcon />} label={profile.coachingSchool} sx={{ borderRadius: 2, fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)' }} />

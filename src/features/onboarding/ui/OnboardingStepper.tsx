@@ -16,6 +16,7 @@ const steps = ['Datos Personales', 'Identidad', 'Sobre mí', 'Ubicación', 'Pref
 export const OnboardingStepper = () => {
     const [activeStep, setActiveStep] = useState(0);
     const [formData, setFormData] = useState<any>({});
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [updateProfile, { isLoading: isSavingDraft }] = useUpdateProfileMutation();
     const [completeProfile, { isLoading: isCompleting }] = useCompleteProfileMutation();
     const isLoading = isSavingDraft || isCompleting;
@@ -24,6 +25,13 @@ export const OnboardingStepper = () => {
     const { data: preferences } = useGetPreferencesQuery(undefined);
     const navigate = useNavigate();
     const dispatch = useDispatch();
+
+    const handleFormChange = (nextData: any) => {
+        setFormData(nextData);
+        setFieldErrors(previous => Object.fromEntries(
+            Object.entries(previous).filter(([field]) => nextData[field] === formData[field])
+        ));
+    };
 
     // Preload local draft on mount
     useEffect(() => {
@@ -63,7 +71,6 @@ export const OnboardingStepper = () => {
             if (p.birthdate) {
                 existingData.birthdate = p.birthdate.slice(0, 10).split('-').reverse().join('/');
             }
-            if (p.height) existingData.height = p.height;
             if (p.gender) existingData.gender = p.gender;
             if (p.genderCustom) existingData.genderCustom = p.genderCustom;
             if (p.bio) existingData.bio = p.bio;
@@ -116,34 +123,39 @@ export const OnboardingStepper = () => {
         if (activeStep === 0) {
             const formattedDate = formatDateForApi(formData.birthdate);
             if (!formData.birthdate || !formattedDate) {
+                setFieldErrors({ birthdate: 'Ingresá una fecha de nacimiento válida' });
                 dispatch(showToast({ message: 'Por favor ingresá una fecha de nacimiento válida (DD/MM/YYYY)', severity: 'warning' }));
                 return;
             }
 
             // Calculate age and ensure >= 18
-            const birthObj = new Date(formattedDate);
             const today = new Date();
-            let age = today.getFullYear() - birthObj.getFullYear();
-            const m = today.getMonth() - birthObj.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthObj.getDate())) {
+            const [birthYear, birthMonth, birthDay] = formattedDate.split('-').map(Number);
+            let age = today.getFullYear() - birthYear;
+            const m = today.getMonth() + 1 - birthMonth;
+            if (m < 0 || (m === 0 && today.getDate() < birthDay)) {
                 age--;
             }
             if (age < 18) {
+                setFieldErrors({ birthdate: 'Debés tener al menos 18 años' });
                 dispatch(showToast({ message: 'Debés tener al menos 18 años para registrarte en OntoMatch', severity: 'warning' }));
                 return;
             }
 
             if (!formData.name || formData.name.trim().length < 2) {
+                setFieldErrors({ name: 'Ingresá tu nombre' });
                 dispatch(showToast({ message: 'Por favor ingresá tu nombre', severity: 'warning' }));
                 return;
             }
 
             if (!formData.coachingSchool || formData.coachingSchool.trim().length === 0) {
+                setFieldErrors({ coachingSchool: 'Ingresá tu escuela de coaching' });
                 dispatch(showToast({ message: 'Por favor ingresá tu escuela de coaching', severity: 'warning' }));
                 return;
             }
 
             if (!formData.lookingFor) {
+                setFieldErrors({ lookingFor: 'Seleccioná qué estás buscando' });
                 dispatch(showToast({ message: 'Por favor seleccioná qué estás buscando', severity: 'warning' }));
                 return;
             }
@@ -152,10 +164,12 @@ export const OnboardingStepper = () => {
         if (activeStep === 1) {
             // Identity Validation
             if (!formData.gender) {
+                setFieldErrors({ gender: 'Seleccioná cómo te identificás' });
                 dispatch(showToast({ message: 'Por favor seleccioná tu identidad de género', severity: 'warning' }));
                 return;
             }
             if (!formData.gendersAllowed || formData.gendersAllowed.length === 0) {
+                setFieldErrors({ gendersAllowed: 'Seleccioná al menos una opción' });
                 dispatch(showToast({ message: 'Por favor seleccioná al menos un género que buscás', severity: 'warning' }));
                 return;
             }
@@ -164,6 +178,7 @@ export const OnboardingStepper = () => {
         if (activeStep === 2) {
             // Bio Validation
             if (!formData.bio || formData.bio.trim().length < 20) {
+                setFieldErrors({ bio: 'Escribí al menos 20 caracteres sobre vos' });
                 dispatch(showToast({ message: 'Por favor escribí una breve descripción de al menos 20 caracteres', severity: 'warning' }));
                 return;
             }
@@ -172,6 +187,7 @@ export const OnboardingStepper = () => {
         if (activeStep === 3) {
             // Location Validation
             if (!formData.locationText) {
+                setFieldErrors({ locationText: 'Buscá y seleccioná una localidad' });
                 dispatch(showToast({ message: 'Por favor buscá y seleccioná tu ubicación / localidad', severity: 'warning' }));
                 return;
             }
@@ -189,15 +205,18 @@ export const OnboardingStepper = () => {
 
         if (activeStep < steps.length - 1) {
             try {
-                await updateProfile({
+                const draftPayload = Object.fromEntries(Object.entries({
                     name: formData.name, birthdate: formatDateForApi(formData.birthdate),
                     coachingSchool: formData.coachingSchool, lookingFor: formData.lookingFor,
-                    height: formData.height || undefined, gender: formData.gender,
-                    genderCustom: formData.genderCustom, bio: formData.bio,
-                    locationId: formData.locationId || undefined, neighborhood: formData.neighborhood,
-                }).unwrap();
+                    gender: formData.gender, genderCustom: formData.genderCustom, bio: formData.bio,
+                    locationId: formData.locationId, neighborhood: formData.neighborhood,
+                }).filter(([, value]) => value !== undefined && value !== null && value !== ''));
+                await updateProfile(draftPayload).unwrap();
                 setActiveStep((prev) => prev + 1);
-            } catch { dispatch(showToast({ message: 'No pudimos guardar este paso. Intentá de nuevo.', severity: 'error' })); }
+            } catch (error: any) {
+                const message = error?.data?.message;
+                dispatch(showToast({ message: typeof message === 'string' ? message : 'No pudimos guardar este paso. Intentá de nuevo.', severity: 'error' }));
+            }
             return;
         }
 
@@ -213,7 +232,6 @@ export const OnboardingStepper = () => {
             const profilePayload = {
                 name: formData.name,
                 birthdate: birthdateISO,
-                height: formData.height || undefined,
                 gender: formData.gender,
                 genderCustom: formData.genderCustom,
                 bio: formData.bio,
@@ -246,11 +264,11 @@ export const OnboardingStepper = () => {
 
     const getStepContent = (step: number) => {
         switch (step) {
-            case 0: return <BasicInfoStep data={formData} onChange={setFormData} />;
-            case 1: return <IdentityStep data={formData} onChange={setFormData} />;
-            case 2: return <BioStep data={formData} onChange={setFormData} />;
-            case 3: return <LocationStep data={formData} onChange={setFormData} />;
-            case 4: return <PreferencesStep data={formData} onChange={setFormData} />;
+            case 0: return <BasicInfoStep data={formData} onChange={handleFormChange} errors={fieldErrors} />;
+            case 1: return <IdentityStep data={formData} onChange={handleFormChange} errors={fieldErrors} />;
+            case 2: return <BioStep data={formData} onChange={handleFormChange} errors={fieldErrors} />;
+            case 3: return <LocationStep data={formData} onChange={handleFormChange} errors={fieldErrors} />;
+            case 4: return <PreferencesStep data={formData} onChange={handleFormChange} />;
             case 5: return <PhotosStep />;
             default: return 'Unknown step';
         }

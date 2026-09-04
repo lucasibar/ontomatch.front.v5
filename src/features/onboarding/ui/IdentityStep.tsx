@@ -1,4 +1,4 @@
-import { Box, Typography, TextField, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, Checkbox, FormGroup } from '@mui/material';
+import { Box, Typography, TextField, FormControl, FormLabel, FormHelperText, RadioGroup, FormControlLabel, Radio, Checkbox, FormGroup } from '@mui/material';
 
 export const genderOptions = [
     { value: 'male', label: 'Hombre' },
@@ -18,13 +18,17 @@ export function GenderPreferences({ value, onChange }: { value: string[]; onChan
         </FormGroup>
     </FormControl>;
 }
-export const IdentityStep = ({ data, onChange }: { data: any; onChange: (data: any) => void }) => <Box display="flex" flexDirection="column" gap={3}>
-    <FormControl component="fieldset" required>
+export const IdentityStep = ({ data, onChange, errors = {} }: { data: any; onChange: (data: any) => void; errors?: Record<string, string> }) => <Box display="flex" flexDirection="column" gap={3}>
+    <FormControl component="fieldset" required error={Boolean(errors.gender)}>
         <FormLabel component="legend">¿Cómo te identificás? (obligatorio)</FormLabel>
         <RadioGroup value={data.gender || ''} onChange={e => onChange({ ...data, gender: e.target.value })}>
             {genderOptions.map(option => <FormControlLabel key={option.value} value={option.value} control={<Radio required />} label={option.label} />)}
         </RadioGroup>
+        {errors.gender && <FormHelperText>{errors.gender}</FormHelperText>}
         {data.gender === 'other' && <TextField label="Cómo describís tu identidad (opcional)" inputProps={{ maxLength: 80 }} value={data.genderCustom || ''} onChange={e => onChange({ ...data, genderCustom: e.target.value })} helperText="Podés describirla con tus propias palabras. Aparecerá en tu perfil." />}
     </FormControl>
-    <GenderPreferences value={data.gendersAllowed || []} onChange={gendersAllowed => onChange({ ...data, gendersAllowed })} />
+    <Box>
+        <GenderPreferences value={data.gendersAllowed || []} onChange={gendersAllowed => onChange({ ...data, gendersAllowed })} />
+        {errors.gendersAllowed && <FormHelperText error>{errors.gendersAllowed}</FormHelperText>}
+    </Box>
 </Box>;

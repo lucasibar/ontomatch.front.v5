@@ -38,7 +38,6 @@ export const ProfilePage = () => {
                 birthdate: p.birthdate, // Format YYYY-MM-DD
                 gender: p.gender,
                 lookingFor: p.looking_for, // API returns snake_case usually, check Profile entity
-                height: p.height,
                 locationText: p.locationText,
                 neighborhood: p.neighborhood,
                 coachingSchool: p.coachingSchool,
@@ -87,7 +86,7 @@ export const ProfilePage = () => {
                 gendersAllowedCustom: customs
             };
 
-            await completeProfile({ profile: { ...formData, height: formData.height || undefined, locationId: formData.locationId || undefined }, preferences: { ...prefPayload, gendersAllowedCustom: [] } }).unwrap();
+            await completeProfile({ profile: { ...formData, locationId: formData.locationId || undefined }, preferences: { ...prefPayload, gendersAllowedCustom: [] } }).unwrap();
 
             setToast({ open: true, message: 'Perfil y preferencias actualizados', severity: 'success' });
         } catch (error) {
@@ -131,14 +130,6 @@ export const ProfilePage = () => {
                     onChange={(e) => handleChange('birthdate', e.target.value)}
                     fullWidth
                 />
-                <TextField
-                    label="Altura (cm)"
-                    type="number"
-                    value={formData.height || ''}
-                    onChange={(e) => handleChange('height', parseInt(e.target.value))}
-                    fullWidth
-                />
-
                 <FormControl fullWidth>
                     <InputLabel>Género</InputLabel>
                     <Select
@@ -171,8 +162,8 @@ export const ProfilePage = () => {
                         onChange={(e) => handleChange('lookingFor', e.target.value)}
                     >
                         <MenuItem value="serious">Algo serio</MenuItem>
-                        <MenuItem value="casual_dating">Conocernos y ver qué pasa</MenuItem>
-                        <MenuItem value="short_term">Pasarla bien (Corto plazo)</MenuItem>
+                        <MenuItem value="casual_dating">Conocernos</MenuItem>
+                        <MenuItem value="short_term">Pasarla bien</MenuItem>
                     </Select>
                 </FormControl>
 
