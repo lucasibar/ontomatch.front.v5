@@ -19,7 +19,7 @@ export const OnboardingPage = () => {
     }
 
     return (
-        <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+        <Container maxWidth="md" sx={{ mt: { xs: 2, sm: 4 }, mb: 4, px: { xs: 1.5, sm: 3 }, overflowX: 'clip' }}>
             <Button
                 size="small"
                 color="inherit"
@@ -27,7 +27,7 @@ export const OnboardingPage = () => {
                 sx={{
                     position: 'fixed',
                     top: 'calc(10px + env(safe-area-inset-top))',
-                    right: 12,
+                    right: 'calc(10px + env(safe-area-inset-right))',
                     zIndex: 10,
                     minWidth: 0,
                     px: 1.5,
@@ -41,8 +41,8 @@ export const OnboardingPage = () => {
             >
                 Salir
             </Button>
-            <Box textAlign="center" mb={6}>
-                <Typography variant="h3" fontWeight="900" gutterBottom sx={{ letterSpacing: -1 }}>
+            <Box textAlign="center" mb={{ xs: 3, sm: 6 }} sx={{ px: 5 }}>
+                <Typography variant="h3" fontWeight="900" gutterBottom sx={{ letterSpacing: -1, fontSize: { xs: '2rem', sm: '3rem' } }}>
                     OntoMatch
                 </Typography>
                 <Typography variant="subtitle1" color="text.secondary">

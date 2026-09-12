@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Box, Stepper, Step, StepLabel, Button, Paper } from '@mui/material';
+import { Box, Stepper, Step, StepLabel, Button, Paper, LinearProgress, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { BasicInfoStep } from './BasicInfoStep';
@@ -277,8 +277,23 @@ export const OnboardingStepper = () => {
     };
 
     return (
-        <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto', mt: 4 }}>
-            <Stepper activeStep={activeStep} alternativeLabel>
+        <Box sx={{ width: '100%', maxWidth: 800, minWidth: 0, mx: 'auto', mt: { xs: 2, sm: 4 } }}>
+            <Box sx={{ display: { xs: 'block', sm: 'none' }, px: 0.5 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 1, mb: 1 }}>
+                    <Typography variant="subtitle2" fontWeight={600}>{steps[activeStep]}</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+                        Paso {activeStep + 1} de {steps.length}
+                    </Typography>
+                </Box>
+                <LinearProgress
+                    variant="determinate"
+                    value={((activeStep + 1) / steps.length) * 100}
+                    aria-label={`Paso ${activeStep + 1} de ${steps.length}: ${steps[activeStep]}`}
+                    sx={{ height: 5, borderRadius: 999, bgcolor: '#E7E3DE', '& .MuiLinearProgress-bar': { borderRadius: 999 } }}
+                />
+            </Box>
+
+            <Stepper activeStep={activeStep} alternativeLabel sx={{ display: { xs: 'none', sm: 'flex' } }}>
                 {steps.map((label) => (
                     <Step key={label}>
                         <StepLabel>{label}</StepLabel>
@@ -286,7 +301,7 @@ export const OnboardingStepper = () => {
                 ))}
             </Stepper>
 
-            <Paper sx={{ p: 4, mt: 4, minHeight: 400 }}>
+            <Paper sx={{ p: { xs: 2, sm: 4 }, mt: { xs: 2, sm: 4 }, minHeight: { xs: 0, sm: 400 }, overflow: 'hidden' }}>
                 {getStepContent(activeStep)}
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
