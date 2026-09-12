@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, Button, TextField, Typography, Alert } from '@mui/material';
 import { useNavigate, Link } from 'react-router-dom';
 import { useRegisterMutation } from '../features/auth/api/authApi';
+import { PasswordField } from '../shared/ui/PasswordField';
 
 export const RegisterPage = () => {
     const [email, setEmail] = useState('');
@@ -27,7 +28,7 @@ export const RegisterPage = () => {
 
         try {
             await register({ email, password }).unwrap();
-            navigate('/onboarding');
+            navigate('/verify-email');
         } catch (err) {
             console.error('Failed to register', err);
         }
@@ -71,9 +72,8 @@ export const RegisterPage = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         margin="normal"
                     />
-                    <TextField
+                    <PasswordField
                         label="Contraseña"
-                        type="password"
                         fullWidth
                         required
                         value={password}
@@ -81,9 +81,8 @@ export const RegisterPage = () => {
                         margin="normal"
                         helperText="Mínimo 8 caracteres"
                     />
-                    <TextField
+                    <PasswordField
                         label="Confirmar contraseña"
-                        type="password"
                         fullWidth
                         required
                         value={confirmPassword}

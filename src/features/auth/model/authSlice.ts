@@ -34,8 +34,13 @@ const authSlice = createSlice({
             localStorage.removeItem('token');
             localStorage.removeItem('user');
         },
+        markEmailVerified: (state) => {
+            if (!state.user) return;
+            state.user.isEmailVerified = true;
+            localStorage.setItem('user', JSON.stringify(state.user));
+        },
     },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, logout, markEmailVerified } = authSlice.actions;
 export default authSlice.reducer;

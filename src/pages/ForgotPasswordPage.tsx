@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { showToast } from '../shared/model/uiSlice';
 import { useForgotPasswordMutation, useResetPasswordMutation } from '../features/auth/api/authApi';
+import { PasswordField } from '../shared/ui/PasswordField';
 
 export const ForgotPasswordPage = () => {
     const navigate = useNavigate();
@@ -93,10 +94,9 @@ export const ForgotPasswordPage = () => {
                             onChange={(e) => setCode(e.target.value)}
                             sx={{ mb: 2 }}
                         />
-                        <TextField
+                        <PasswordField
                             fullWidth
                             label="Nueva contraseña"
-                            type="password"
                             variant="outlined"
                             helperText="Entre 8 y 128 caracteres" inputProps={{ minLength: 8, maxLength: 128 }} value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}

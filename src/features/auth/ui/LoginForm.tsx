@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLoginMutation } from '../api/authApi';
 import { Box, Button, TextField, Typography, Alert } from '@mui/material';
 import { useNavigate, Link } from 'react-router-dom';
+import { PasswordField } from '../../../shared/ui/PasswordField';
 
 export const LoginForm = () => {
     const [email, setEmail] = useState('');
@@ -16,8 +17,8 @@ export const LoginForm = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await login({ email, password }).unwrap();
-            navigate('/');
+            const result = await login({ email, password }).unwrap();
+            navigate(result.user.isEmailVerified === false ? '/verify-email' : '/');
         } catch (err) {
             console.error('Failed to login', err);
         }
@@ -63,9 +64,8 @@ export const LoginForm = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         error={isEmailError}
                     />
-                    <TextField
+                    <PasswordField
                         label="Contraseña"
-                        type="password"
                         fullWidth
                         margin="normal"
                         value={password}

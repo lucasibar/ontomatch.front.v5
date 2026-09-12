@@ -3,6 +3,7 @@ export { SwipesPage } from './SwipesPage';
 export * from './LoginPage';
 export { RegisterPage } from './RegisterPage';
 export { ForgotPasswordPage } from './ForgotPasswordPage';
+export { VerifyEmailPage } from './VerifyEmailPage';
 export { OnboardingPage } from './OnboardingPage';
 export { ProfilePage } from './ProfilePage';
 export { AdminChatsPage } from './AdminChatsPage';
