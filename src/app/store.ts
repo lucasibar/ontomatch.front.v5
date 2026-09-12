@@ -22,8 +22,13 @@ export const rtkQueryErrorLogger: Middleware = (api) => (next) => (action) => {
     if (isRejectedWithValue(action)) {
         const payload = action.payload as any;
         if (payload?.status === 401) {
-            api.dispatch(logout());
-            api.dispatch(showToast({ message: 'Sesión expirada. Por favor, inicia sesión nuevamente.', severity: 'warning' }));
+            const state = api.getState() as { auth?: { isAuthenticated?: boolean } };
+            // A 401 from the public login form is a validation error, not an
+            // expired session. Let the form keep and display that response.
+            if (state.auth?.isAuthenticated) {
+                api.dispatch(logout());
+                api.dispatch(showToast({ message: 'Sesión expirada. Por favor, inicia sesión nuevamente.', severity: 'warning' }));
+            }
         } else if (payload?.status === 403 && payload?.data?.code === 'ONBOARDING_REQUIRED') {
             api.dispatch(baseApi.util.invalidateTags(['User']));
         } else if (payload?.status === 500) {

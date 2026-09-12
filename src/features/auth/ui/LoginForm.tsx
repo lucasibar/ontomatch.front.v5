@@ -50,6 +50,11 @@ export const LoginForm = () => {
                             El email no está registrado. <Link to="/register">Crear cuenta</Link>
                         </Alert>
                     )}
+                    {isPasswordError && (
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                            Contraseña incorrecta. Volvé a intentarlo o recuperá tu contraseña.
+                        </Alert>
+                    )}
                     {genericError && (
                         <Alert severity="error" sx={{ mb: 2 }}>
                             {(error as any)?.data?.message || 'Error de conexión'}
