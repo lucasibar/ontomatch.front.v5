@@ -1,17 +1,46 @@
-import { Container, Typography, Box } from '@mui/material';
+import { Container, Typography, Box, Button } from '@mui/material';
 import { OnboardingStepper } from '../features/onboarding/ui/OnboardingStepper';
 import { Navigate } from 'react-router-dom';
 import { useGetMeQuery } from '../features/onboarding/api/profileApi';
+import { useDispatch } from 'react-redux';
+import { logout } from '../features/auth/model/authSlice';
+import type { AppDispatch } from '../app/store';
 
 export const OnboardingPage = () => {
     const { data: profile, isLoading, isFetching } = useGetMeQuery(undefined);
+    const dispatch = useDispatch<AppDispatch>();
+    const hasCompletedOnboarding = typeof profile === 'object'
+        && profile !== null
+        && 'isOnboarded' in profile
+        && profile.isOnboarded === true;
 
-    if (!isLoading && !isFetching && (profile as any)?.isOnboarded) {
+    if (!isLoading && !isFetching && hasCompletedOnboarding) {
         return <Navigate to="/" replace />;
     }
 
     return (
         <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+            <Button
+                size="small"
+                color="inherit"
+                onClick={() => dispatch(logout())}
+                sx={{
+                    position: 'fixed',
+                    top: 'calc(10px + env(safe-area-inset-top))',
+                    right: 12,
+                    zIndex: 10,
+                    minWidth: 0,
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: 2,
+                    color: 'text.secondary',
+                    bgcolor: 'rgba(250, 249, 247, 0.88)',
+                    backdropFilter: 'blur(8px)',
+                    '&:hover': { bgcolor: 'rgba(250, 249, 247, 1)' },
+                }}
+            >
+                Salir
+            </Button>
             <Box textAlign="center" mb={6}>
                 <Typography variant="h3" fontWeight="900" gutterBottom sx={{ letterSpacing: -1 }}>
                     OntoMatch
