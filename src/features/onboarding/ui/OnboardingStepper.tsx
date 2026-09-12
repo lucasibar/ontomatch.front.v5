@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { BasicInfoStep } from './BasicInfoStep';
 import { IdentityStep } from './IdentityStep';
+import { normalizeGenderPreferences } from '../model/genderOptions';
 import { BioStep } from './BioStep';
 import { LocationStep } from './LocationStep';
 import { PreferencesStep } from './PreferencesStep';
@@ -41,7 +42,12 @@ export const OnboardingStepper = () => {
             try {
                 const parsed = JSON.parse(draft);
                 if (parsed.formData) {
-                    setFormData((prev: any) => ({ ...prev, ...parsed.formData }));
+                    const savedData = parsed.formData;
+                    setFormData((prev: any) => ({
+                        ...prev,
+                        ...savedData,
+                        ...(savedData.gendersAllowed ? { gendersAllowed: normalizeGenderPreferences(savedData.gendersAllowed) } : {}),
+                    }));
                 }
                 if (typeof parsed.activeStep === 'number') {
                     setActiveStep(Math.max(0, Math.min(steps.length - 1, parsed.activeStep)));
@@ -95,7 +101,7 @@ export const OnboardingStepper = () => {
                 ...prev,
                 distanceKm: prev.distanceKm || prefs.distanceKm,
                 ageRange: prev.ageRange || [prefs.ageMin || 18, prefs.ageMax || 99],
-                gendersAllowed: prev.gendersAllowed || prefs.gendersAllowed || [],
+                gendersAllowed: prev.gendersAllowed || normalizeGenderPreferences(prefs.gendersAllowed || []),
                 gendersAllowedCustom: prev.gendersAllowedCustom || prefs.gendersAllowedCustom || [],
                 gendersAllowedCustomStr: prev.gendersAllowedCustomStr || (prefs.gendersAllowedCustom || []).join(', '),
             }));
@@ -164,14 +170,25 @@ export const OnboardingStepper = () => {
 
         if (activeStep === 1) {
             // Identity Validation
+            const selectedGenders = normalizeGenderPreferences(formData.gendersAllowed || []);
             if (!formData.gender) {
                 setFieldErrors({ gender: 'Seleccioná cómo te identificás' });
                 dispatch(showToast({ message: 'Por favor seleccioná tu identidad de género', severity: 'warning' }));
                 return;
             }
-            if (!formData.gendersAllowed || formData.gendersAllowed.length === 0) {
+            if (formData.gender === 'other' && !formData.genderCustom?.trim()) {
+                setFieldErrors({ genderCustom: 'Escribí cómo describís tu identidad' });
+                dispatch(showToast({ message: 'Completá cómo describís tu identidad', severity: 'warning' }));
+                return;
+            }
+            if (selectedGenders.length === 0) {
                 setFieldErrors({ gendersAllowed: 'Seleccioná al menos una opción' });
                 dispatch(showToast({ message: 'Por favor seleccioná al menos un género que buscás', severity: 'warning' }));
+                return;
+            }
+            if (selectedGenders.includes('other') && !formData.gendersAllowedCustom?.[0]?.trim()) {
+                setFieldErrors({ gendersAllowedCustom: 'Escribí qué otra identidad buscás' });
+                dispatch(showToast({ message: 'Completá qué otra identidad te gustaría conocer', severity: 'warning' }));
                 return;
             }
         }
@@ -234,7 +251,7 @@ export const OnboardingStepper = () => {
                 name: formData.name,
                 birthdate: birthdateISO,
                 gender: formData.gender,
-                genderCustom: formData.genderCustom,
+                genderCustom: formData.gender === 'other' ? formData.genderCustom?.trim() : undefined,
                 bio: formData.bio,
                 locationText: formData.locationText,
                 locationId: formData.locationId || undefined,
@@ -246,8 +263,10 @@ export const OnboardingStepper = () => {
                 distanceKm: formData.distanceKm || 50,
                 ageMin: formData.ageRange?.[0] || 18,
                 ageMax: formData.ageRange?.[1] || 99,
-                gendersAllowed: formData.gendersAllowed || [],
-                gendersAllowedCustom: []
+                gendersAllowed: normalizeGenderPreferences(formData.gendersAllowed || []),
+                gendersAllowedCustom: normalizeGenderPreferences(formData.gendersAllowed || []).includes('other')
+                    ? [formData.gendersAllowedCustom?.[0]?.trim()].filter(Boolean)
+                    : []
             } }).unwrap();
 
             dispatch(profileApi.util.upsertQueryData('getMe', undefined, completedProfile));

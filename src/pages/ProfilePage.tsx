@@ -1,4 +1,5 @@
 import { GenderPreferences } from '../features/onboarding/ui/IdentityStep';
+import { normalizeGenderPreferences } from '../features/onboarding/model/genderOptions';
 import { Box, Typography, Container, TextField, Button, MenuItem, FormControl, InputLabel, Select, Snackbar, Alert, Slider, Autocomplete } from '@mui/material';
 import { useGetMeQuery, useCompleteProfileMutation, useGetPreferencesQuery, useLazySearchLocationsQuery } from '../features/onboarding/api/profileApi';
 import { useState, useEffect, useRef } from 'react';
@@ -50,7 +51,7 @@ export const ProfilePage = () => {
             setPrefData({
                 distanceKm: prefs.distanceKm || 50,
                 ageRange: [prefs.ageMin || 18, prefs.ageMax || 99],
-                gendersAllowed: prefs.gendersAllowed || [],
+                gendersAllowed: normalizeGenderPreferences(prefs.gendersAllowed || []),
                 gendersAllowedCustom: prefs.gendersAllowedCustom || [],
                 gendersAllowedCustomStr: (prefs.gendersAllowedCustom || []).join(', '),
             });
@@ -70,23 +71,29 @@ export const ProfilePage = () => {
             setToast({ open: true, message: `Faltan completar campos obligatorios: ${missing.join(', ')}`, severity: 'error' });
             return;
         }
+        if (formData.gender === 'other' && !formData.genderCustom?.trim()) {
+            setToast({ open: true, message: 'Escribí cómo describís tu identidad', severity: 'error' });
+            return;
+        }
+        if (prefData.gendersAllowed?.includes('other') && !prefData.gendersAllowedCustom?.[0]?.trim()) {
+            setToast({ open: true, message: 'Escribí qué otra identidad te gustaría conocer', severity: 'error' });
+            return;
+        }
 
         try {
 
-
-            const customs = prefData.gendersAllowedCustomStr
-                ? prefData.gendersAllowedCustomStr.split(',').map((s: string) => s.trim()).filter(Boolean)
-                : (prefData.gendersAllowedCustom || []);
 
             const prefPayload = {
                 distanceKm: prefData.distanceKm,
                 ageMin: prefData.ageRange[0],
                 ageMax: prefData.ageRange[1],
-                gendersAllowed: prefData.gendersAllowed,
-                gendersAllowedCustom: customs
+                gendersAllowed: normalizeGenderPreferences(prefData.gendersAllowed),
+                gendersAllowedCustom: prefData.gendersAllowed.includes('other')
+                    ? [prefData.gendersAllowedCustom?.[0]?.trim()].filter(Boolean)
+                    : []
             };
 
-            await completeProfile({ profile: { ...formData, locationId: formData.locationId || undefined }, preferences: { ...prefPayload, gendersAllowedCustom: [] } }).unwrap();
+            await completeProfile({ profile: { ...formData, genderCustom: formData.gender === 'other' ? formData.genderCustom.trim() : undefined, locationId: formData.locationId || undefined }, preferences: prefPayload }).unwrap();
 
             setToast({ open: true, message: 'Perfil y preferencias actualizados', severity: 'success' });
         } catch (error) {
@@ -146,7 +153,8 @@ export const ProfilePage = () => {
 
                 {formData.gender === 'other' && (
                     <TextField
-                        label="Tu identidad (opcional)"
+                        required
+                        label="¿Cómo describís tu identidad?"
                         value={formData.genderCustom || ''}
                         onChange={(e) => handleChange('genderCustom', e.target.value)}
                         fullWidth
@@ -203,7 +211,12 @@ export const ProfilePage = () => {
 
                 <Typography variant="h6" mt={2}>Qué estás buscando</Typography>
 
-<GenderPreferences value={prefData.gendersAllowed || []} onChange={value => setPrefData({ ...prefData, gendersAllowed: value })} />
+                <GenderPreferences
+                    value={prefData.gendersAllowed || []}
+                    customValue={prefData.gendersAllowedCustom?.[0] || ''}
+                    onChange={value => setPrefData({ ...prefData, gendersAllowed: value, ...(value.includes('other') ? {} : { gendersAllowedCustom: [] }) })}
+                    onCustomChange={custom => setPrefData({ ...prefData, gendersAllowedCustom: custom ? [custom] : [] })}
+                />
                 <Box>
                     <Typography gutterBottom>Distancia Máxima: {prefData.distanceKm} km</Typography>
                     <Slider
