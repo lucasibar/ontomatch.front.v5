@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, CircularProgress, IconButton, Popover, TextField, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import EmojiIcon from '@mui/icons-material/SentimentSatisfiedAlt';
@@ -6,8 +6,8 @@ import { useGetMessagesQuery, useLazyGetMessagesQuery, useMarkAsReadMutation, ty
 import { socketService } from '../../../shared/api/socket';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../app/store';
+import EmojiPicker from 'emoji-picker-react';
 
-const EmojiPicker = lazy(() => import('emoji-picker-react'));
 type LocalMessage = Message & { delivery?: 'sending' | 'failed' };
 function mergeMessages(previous: LocalMessage[], incoming: LocalMessage[]) {
     const result = [...previous];
@@ -178,9 +178,7 @@ function ConversationWindow({ conversationId }: { conversationId: string }) {
         <Box component="form" onSubmit={e => { e.preventDefault(); send(); }} sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#FFFFFF', borderTop: '1px solid #E5E5E5' }}>
             <IconButton aria-label="Agregar emoji" onClick={e => setEmojiAnchor(e.currentTarget)}><EmojiIcon /></IconButton>
             <Popover open={Boolean(emojiAnchor)} anchorEl={emojiAnchor} onClose={() => setEmojiAnchor(null)} anchorOrigin={{ vertical: 'top', horizontal: 'left' }} transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}>
-                <Suspense fallback={<Box p={3}><CircularProgress size={24} /></Box>}>
-                    {emojiAnchor && <EmojiPicker width={300} height={360} onEmojiClick={emoji => setText(previous => (previous + emoji.emoji).slice(0, 4000))} />}
-                </Suspense>
+                {emojiAnchor && <EmojiPicker width={300} height={360} onEmojiClick={emoji => setText(previous => (previous + emoji.emoji).slice(0, 4000))} />}
             </Popover>
             <TextField fullWidth size="small" label="Mensaje" placeholder="Escribí un mensaje…" multiline maxRows={4} value={text} inputProps={{ maxLength: 4000 }} onChange={e => {
                 setText(e.target.value);

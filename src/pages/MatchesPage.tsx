@@ -52,10 +52,15 @@ export const MatchesPage = () => {
     }, [location.state, location.search, navigate, location.pathname]);
 
     const handleSelectConversation = (id: string) => {
+        setMenuAnchor(null);
         setSelectedConversationId(id);
     };
 
     const handleBackToList = () => {
+        setMenuAnchor(null);
+        setBlockDialog(false);
+        setReportDialog(false);
+        setReportReason('');
         setSelectedConversationId(null);
     };
 
@@ -227,7 +232,9 @@ export const MatchesPage = () => {
                             left: 0,
                             right: 0,
                             bottom: 0,
-                            zIndex: 2000,
+                            // Keep the full-screen chat above the bottom navigation,
+                            // but below MUI popovers, menus and dialogs (modal = 1300).
+                            zIndex: (currentTheme) => currentTheme.zIndex.drawer + 1,
                             bgcolor: 'background.default',
                             display: 'flex',
                             flexDirection: 'column'
@@ -328,30 +335,30 @@ export const MatchesPage = () => {
                 PaperProps={{ sx: { borderRadius: 2, minWidth: 160 } }}
             >
                 <MenuItem onClick={() => { setMenuAnchor(null); setBlockDialog(true); }}>
-                    Bloquear
+                    Eliminar chat
                 </MenuItem>
                 <MenuItem onClick={() => { setMenuAnchor(null); setReportDialog(true); }} sx={{ color: 'error.main' }}>
-                    Reportar
+                    Denunciar
                 </MenuItem>
             </Menu>
 
             {/* Block Confirmation */}
             <Dialog open={blockDialog} onClose={() => setBlockDialog(false)} PaperProps={{ sx: { borderRadius: 3 } }}>
-                <DialogTitle>¿Bloquear a {selectedConversation?.partner?.name}?</DialogTitle>
+                <DialogTitle>¿Eliminar el chat con {selectedConversation?.partner?.name}?</DialogTitle>
                 <DialogContent>
                     <Typography variant="body2" color="text.secondary">
-                        Ya no van a poder verse ni escribirse. Esta acción no se puede deshacer.
+                        El chat desaparecerá y esta persona quedará bloqueada, pero no será denunciada. Ya no van a poder verse ni escribirse.
                     </Typography>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setBlockDialog(false)}>Cancelar</Button>
-                    <Button onClick={handleBlock} color="error" variant="contained" disableElevation>Bloquear</Button>
+                    <Button onClick={handleBlock} color="error" variant="contained" disableElevation>Eliminar chat</Button>
                 </DialogActions>
             </Dialog>
 
             {/* Report Dialog */}
             <Dialog open={reportDialog} onClose={() => setReportDialog(false)} PaperProps={{ sx: { borderRadius: 3 } }}>
-                <DialogTitle>Reportar a {selectedConversation?.partner?.name}</DialogTitle>
+                <DialogTitle>Denunciar a {selectedConversation?.partner?.name}</DialogTitle>
                 <DialogContent>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                         Contanos qué pasó. Si 2 personas reportan al mismo usuario, su cuenta se suspende automáticamente.
@@ -360,7 +367,7 @@ export const MatchesPage = () => {
                         fullWidth
                         multiline
                         rows={3}
-                        placeholder="Describe el motivo del reporte..."
+                        placeholder="Describí el motivo de la denuncia..."
                         value={reportReason}
                         onChange={(e) => setReportReason(e.target.value)}
                         variant="outlined"
@@ -368,7 +375,7 @@ export const MatchesPage = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => { setReportDialog(false); setReportReason(''); }}>Cancelar</Button>
-                    <Button onClick={handleReport} color="error" variant="contained" disableElevation disabled={reportReason.length < 5}>Reportar</Button>
+                    <Button onClick={handleReport} color="error" variant="contained" disableElevation disabled={reportReason.length < 5}>Denunciar</Button>
                 </DialogActions>
             </Dialog>
         </Box>

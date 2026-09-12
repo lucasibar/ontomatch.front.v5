@@ -5,6 +5,7 @@ import { ProtectedRoute } from '../shared/ui/ProtectedRoute';
 import { RequireOnboarding } from '../shared/ui/RequireOnboarding';
 import { PublicRoute } from '../shared/ui/PublicRoute';
 import { RequireVerifiedEmail } from '../shared/ui/RequireVerifiedEmail';
+import { RouteErrorFallback } from '../shared/ui/ErrorBoundary';
 const AdminMetricsPage = lazy(() => import('../pages/AdminMetricsPage').then(m => ({ default: m.AdminMetricsPage })));
 const AdminChatsPage = lazy(() => import('../pages/AdminChatsPage').then(m => ({ default: m.AdminChatsPage })));
 const ProfilePage = lazy(() => import('../pages/ProfilePage').then(m => ({ default: m.ProfilePage })));
@@ -20,18 +21,22 @@ export const router = createBrowserRouter([
     {
         path: '/login',
         element: <PublicRoute><Suspense fallback={<div role="status" style={{ padding: 24 }}>Cargando…</div>}><LoginPage /></Suspense></PublicRoute>,
+        errorElement: <RouteErrorFallback />,
     },
     {
         path: '/register',
         element: <PublicRoute><Suspense fallback={<div role="status" style={{ padding: 24 }}>Cargando…</div>}><RegisterPage /></Suspense></PublicRoute>,
+        errorElement: <RouteErrorFallback />,
     },
     {
         path: '/forgot-password',
         element: <PublicRoute><Suspense fallback={<div role="status" style={{ padding: 24 }}>Cargando…</div>}><ForgotPasswordPage /></Suspense></PublicRoute>,
+        errorElement: <RouteErrorFallback />,
     },
     // Protected Routes (require Auth)
     {
         element: <ProtectedRoute><Outlet /></ProtectedRoute>,
+        errorElement: <RouteErrorFallback />,
         children: [
             {
                 path: '/verify-email',
