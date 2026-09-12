@@ -1,6 +1,7 @@
 import { Provider } from 'react-redux';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { store } from '../store';
+import { GlobalToast } from '../../shared/ui/GlobalToast';
 
 const theme = createTheme({
     palette: {
@@ -96,6 +97,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
             <ThemeProvider theme={theme}>
                 <CssBaseline />
                 {children}
+                <GlobalToast />
             </ThemeProvider>
         </Provider>
     );

@@ -22,11 +22,13 @@ export const ForgotPasswordPage = () => {
     const handleSendCode = async () => {
         if (!email) return;
         try {
-            await forgotPassword(email).unwrap();
+            const normalizedEmail = email.trim().toLowerCase();
+            await forgotPassword(normalizedEmail).unwrap();
+            setEmail(normalizedEmail);
             setStep(2);
-            dispatch(showToast({ message: 'Instrucciones enviadas', severity: 'success' }));
-        } catch (error) {
-            dispatch(showToast({ message: 'Error al enviar código', severity: 'error' }));
+            dispatch(showToast({ message: 'Código enviado. Revisá también spam o correo no deseado.', severity: 'success' }));
+        } catch {
+            dispatch(showToast({ message: 'No pudimos enviar el código. Intentá nuevamente en unos segundos.', severity: 'error' }));
         }
     };
 
@@ -36,7 +38,7 @@ export const ForgotPasswordPage = () => {
             await resetPassword({ email, code, newPassword }).unwrap();
             dispatch(showToast({ message: 'Contraseña actualizada con éxito. Ya puedes iniciar sesión.', severity: 'success' }));
             navigate('/login');
-        } catch (error) {
+        } catch {
             dispatch(showToast({ message: 'Código inválido o error al actualizar', severity: 'error' }));
         }
     };
@@ -112,6 +114,14 @@ export const ForgotPasswordPage = () => {
                         >
                             {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Actualizar contraseña'}
                         </Button>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                            <Button size="small" onClick={handleSendCode} disabled={isLoading}>
+                                Reenviar código
+                            </Button>
+                            <Button size="small" color="inherit" onClick={() => { setStep(1); setCode(''); }} disabled={isLoading}>
+                                Cambiar email
+                            </Button>
+                        </Box>
                     </>
                 )}
 
