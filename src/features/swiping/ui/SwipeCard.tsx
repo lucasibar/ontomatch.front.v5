@@ -1,246 +1,110 @@
-
-import React, { useState } from 'react';
-import { motion, type PanInfo, useMotionValue, useTransform, animate } from 'framer-motion';
-import { Box, Typography, Paper } from '@mui/material';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import SchoolIcon from '@mui/icons-material/School';
-import { type Profile } from '../types';
+import { useRef, useState } from 'react';
+import { animate, motion, type PanInfo, useMotionValue, useTransform } from 'framer-motion';
+import { Box, Typography } from '@mui/material';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
+import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
+import SchoolRoundedIcon from '@mui/icons-material/SchoolRounded';
+import type { Profile } from '../types';
 import { ImageWithFallback } from '../../../shared/ui/ImageWithFallback';
 
 interface SwipeCardProps {
     profile: Profile;
-    onSwipe: (direction: 'left' | 'right') => void;
-    onInfo: () => void;
-    active: boolean; // Is top card
+    onSwipe: (direction: 'left' | 'right') => Promise<boolean>;
+    active: boolean;
 }
 
-const SwipeCard: React.FC<SwipeCardProps> = ({ profile, onSwipe, onInfo: _onInfo, active }) => {
+const SwipeCard = ({ profile, onSwipe, active }: SwipeCardProps) => {
     const [photoIndex, setPhotoIndex] = useState(0);
+    const leaving = useRef(false);
     const x = useMotionValue(0);
-    const rotate = useTransform(x, [-300, 300], [-15, 15]);
-    const likeOpacity = useTransform(x, [0, 100], [0, 1]);
-    const passOpacity = useTransform(x, [-100, 0], [1, 0]);
+    const rotate = useTransform(x, [-320, 320], [-6, 6]);
+    const likeOpacity = useTransform(x, [25, 115], [0, 1]);
+    const passOpacity = useTransform(x, [-115, -25], [1, 0]);
+    const feedbackScale = useTransform(x, [-180, 0, 180], [1.08, 0.82, 1.08]);
+    const photos = profile.photos?.length ? profile.photos : [{ url: 'FALLBACK' }];
+    const currentPhotoUrl = photos[photoIndex]?.url || 'FALLBACK';
 
-    const hasPhotos = profile.photos && profile.photos.length > 0;
-    const photos = hasPhotos ? profile.photos! : [{ url: 'FALLBACK' }];
-
-    const handleDragEnd = (_: any, info: PanInfo) => {
-        const swipeThreshold = 120;
-
-        if (info.offset.x > swipeThreshold) {
-            // Swipe Right = LIKE
-            animate(x, 0, { duration: 0.2 });
-            onSwipe('right');
-        } else if (info.offset.x < -swipeThreshold) {
-            // Swipe Left = PASS
-            animate(x, 0, { duration: 0.2 });
-            onSwipe('left');
-        } else {
-            // Snap back
-            animate(x, 0, { duration: 0.3 });
+    const commitSwipe = async (direction: 'left' | 'right') => {
+        if (leaving.current) return;
+        leaving.current = true;
+        const destination = (direction === 'right' ? 1 : -1) * Math.max(window.innerWidth * 1.25, 520);
+        await animate(x, destination, { duration: 0.22, ease: 'easeOut' });
+        const saved = await onSwipe(direction);
+        if (!saved) {
+            leaving.current = false;
+            animate(x, 0, { type: 'spring', stiffness: 420, damping: 32 });
         }
     };
 
-    const handleTapLeft = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setPhotoIndex(prev => Math.max(0, prev - 1));
+    const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+        if (info.offset.x > 105 || info.velocity.x > 700) void commitSwipe('right');
+        else if (info.offset.x < -105 || info.velocity.x < -700) void commitSwipe('left');
+        else animate(x, 0, { type: 'spring', stiffness: 420, damping: 32 });
     };
 
-    const handleTapRight = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setPhotoIndex(prev => Math.min(photos.length - 1, prev + 1));
-    };
-
-    const age = profile.age;
-
-    const currentPhotoUrl = photos[photoIndex]?.url || '';
+    const location = profile.neighborhood || profile.locationText || 'Ubicación no indicada';
+    const school = profile.coachingSchool || 'Escuela no indicada';
 
     return (
         <motion.div
-            style={{
-                width: '100%',
-                height: '100%',
-                position: 'absolute',
-                top: 0,
-                x: active ? x : 0,
-                rotate: active ? rotate : 0,
-                zIndex: active ? 100 : 0
-            }}
-            drag={active ? "x" : false}
-            dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-            dragElastic={0.6}
+            style={{ position: 'absolute', inset: 0, x: active ? x : 0, rotate: active ? rotate : 0, zIndex: active ? 2 : 1, touchAction: 'pan-y' }}
+            drag={active ? 'x' : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.72}
+            dragMomentum={false}
             onDragEnd={handleDragEnd}
-            whileTap={{ cursor: 'grabbing' }}
         >
-            <Paper
-                elevation={4}
-                sx={{
-                    height: '100%',
-                    width: '100%',
-                    overflow: 'hidden',
-                    borderRadius: '20px',
-                    position: 'relative',
-                    bgcolor: '#FFFFFF',
-                    border: '1px solid #E4E4E7',
-                }}
-            >
-                {/* Image or Fallback */}
-                {currentPhotoUrl === 'FALLBACK' || !currentPhotoUrl ? (
-                    <Box sx={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: '#F4F4F5',
-                    }}>
-                        <Typography variant="h1" sx={{ color: '#E4E4E7', fontWeight: 700, fontSize: '10rem' }}>
-                            {profile.name.charAt(0).toUpperCase()}
-                        </Typography>
+            <Box sx={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', bgcolor: '#151515', borderRadius: { xs: 0, md: 3 } }}>
+                {currentPhotoUrl === 'FALLBACK' ? (
+                    <Box sx={{ width: '100%', height: '100%', display: 'grid', placeItems: 'center', bgcolor: '#2d2d2d' }}>
+                        <Typography sx={{ color: 'rgba(255,255,255,.3)', fontSize: '9rem', fontWeight: 700 }}>{profile.name.charAt(0).toUpperCase()}</Typography>
                     </Box>
                 ) : (
-                    <ImageWithFallback
-                        src={currentPhotoUrl}
-                        alt={profile.name}
-                        sx={{ pointerEvents: 'none' }}
-                    />
+                    <ImageWithFallback src={currentPhotoUrl} alt={`${profile.name}, foto ${photoIndex + 1}`} sx={{ pointerEvents: 'none' }} />
                 )}
 
-                {/* Tap areas for photo Navigation */}
-                {hasPhotos && photos.length > 1 && (
-                    <>
-                        <Box onClick={handleTapLeft} sx={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '30%', zIndex: 5, cursor: photoIndex > 0 ? 'pointer' : 'default' }} />
-                        <Box onClick={handleTapRight} sx={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '30%', zIndex: 5, cursor: photoIndex < photos.length - 1 ? 'pointer' : 'default' }} />
-                    </>
-                )}
-
-                {/* Photo Indicators - Top Edge */}
-                {hasPhotos && photos.length > 1 && (
-                    <Box sx={{ position: 'absolute', top: 8, left: 0, right: 0, display: 'flex', gap: 0.5, px: 1.5, zIndex: 20 }}>
-                        {photos.map((_, i) => (
-                            <Box
-                                key={i}
-                                sx={{
-                                    flex: 1,
-                                    height: 3,
-                                    bgcolor: i === photoIndex ? 'white' : 'rgba(255,255,255,0.3)',
-                                    borderRadius: 1,
-                                    boxShadow: '0 1px 2px rgba(0,0,0,0.5)'
-                                }}
-                            />
+                {photos.length > 1 && (
+                    <Box sx={{ position: 'absolute', top: 10, left: 10, right: 10, display: 'flex', gap: 0.5, zIndex: 5 }}>
+                        {photos.map((_photo, index) => (
+                            <Box key={index} sx={{ flex: 1, height: 3, borderRadius: 2, bgcolor: index === photoIndex ? '#fff' : 'rgba(255,255,255,.38)', boxShadow: '0 1px 3px rgba(0,0,0,.24)' }} />
                         ))}
                     </Box>
                 )}
 
-                {/* LIKE / PASS visual feedback overlays */}
+                {active && photos.length > 1 && (
+                    <>
+                        <Box component="button" type="button" aria-label="Foto anterior" onClick={() => setPhotoIndex(index => Math.max(0, index - 1))} sx={{ position: 'absolute', inset: '0 50% 0 0', zIndex: 4, border: 0, p: 0, bgcolor: 'transparent', cursor: photoIndex > 0 ? 'pointer' : 'default' }} />
+                        <Box component="button" type="button" aria-label="Foto siguiente" onClick={() => setPhotoIndex(index => Math.min(photos.length - 1, index + 1))} sx={{ position: 'absolute', inset: '0 0 0 50%', zIndex: 4, border: 0, p: 0, bgcolor: 'transparent', cursor: photoIndex < photos.length - 1 ? 'pointer' : 'default' }} />
+                    </>
+                )}
+
                 {active && (
                     <>
-                        <motion.div style={{
-                            position: 'absolute',
-                            top: 80,
-                            left: 30,
-                            opacity: likeOpacity,
-                            zIndex: 30,
-                            pointerEvents: 'none',
-                        }}>
-                            <Box sx={{
-                                border: '4px solid #4caf50',
-                                borderRadius: 2,
-                                px: 3,
-                                py: 1,
-                                transform: 'rotate(-20deg)',
-                            }}>
-                                <Typography sx={{ color: '#4caf50', fontWeight: 900, fontSize: '2rem', letterSpacing: 2 }}>
-                                    ME GUSTA
-                                </Typography>
-                            </Box>
+                        <motion.div style={{ position: 'absolute', top: '44%', left: '50%', marginLeft: -29, marginTop: -29, zIndex: 8, opacity: likeOpacity, scale: feedbackScale, pointerEvents: 'none' }}>
+                            <Box sx={{ width: 58, height: 58, borderRadius: '50%', display: 'grid', placeItems: 'center', color: '#fff', bgcolor: 'rgba(35,105,72,.76)', backdropFilter: 'blur(5px)', boxShadow: '0 4px 18px rgba(0,0,0,.18)' }}><FavoriteRoundedIcon fontSize="medium" /></Box>
                         </motion.div>
-                        <motion.div style={{
-                            position: 'absolute',
-                            top: 80,
-                            right: 30,
-                            opacity: passOpacity,
-                            zIndex: 30,
-                            pointerEvents: 'none',
-                        }}>
-                            <Box sx={{
-                                border: '4px solid #ff4b4b',
-                                borderRadius: 2,
-                                px: 3,
-                                py: 1,
-                                transform: 'rotate(20deg)',
-                            }}>
-                                <Typography sx={{ color: '#ff4b4b', fontWeight: 900, fontSize: '2rem', letterSpacing: 2 }}>
-                                    PASAR
-                                </Typography>
-                            </Box>
+                        <motion.div style={{ position: 'absolute', top: '44%', left: '50%', marginLeft: -29, marginTop: -29, zIndex: 8, opacity: passOpacity, scale: feedbackScale, pointerEvents: 'none' }}>
+                            <Box sx={{ width: 58, height: 58, borderRadius: '50%', display: 'grid', placeItems: 'center', color: '#fff', bgcolor: 'rgba(55,55,58,.76)', backdropFilter: 'blur(5px)', boxShadow: '0 4px 18px rgba(0,0,0,.18)' }}><CloseRoundedIcon fontSize="medium" /></Box>
                         </motion.div>
                     </>
                 )}
 
-                {/* INFO OVERLAY - Bottom gradient */}
-                <Box sx={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    pt: 12,
-                    px: 3,
-                    pb: 14,
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%)',
-                    zIndex: 10,
-                    pointerEvents: 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'flex-end',
-                }}>
-                    <Typography variant="h4" color="white" fontWeight="bold" sx={{ textShadow: '0px 2px 4px rgba(0,0,0,0.8)', letterSpacing: 0.5 }}>
-                        {profile.name}, {age}
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5, gap: 0.5 }}>
-                        <LocationOnIcon sx={{ color: '#FFFFFF', fontSize: 18 }} />
-                        <Typography variant="body2" color="white" sx={{ textShadow: '0px 1px 2px rgba(0,0,0,0.8)', fontWeight: 400 }}>
-                            {profile.distanceKm ? `A ${Math.round(profile.distanceKm)} km` : (profile as any).locationText || 'Cerca tuyo'}
-                        </Typography>
-                    </Box>
-
-                    {(profile as any).coachingSchool && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5, gap: 0.5 }}>
-                            <SchoolIcon sx={{ color: '#FFFFFF', fontSize: 18 }} />
-                            <Typography variant="body2" color="white" sx={{ textShadow: '0px 1px 2px rgba(0,0,0,0.8)', fontWeight: 400 }}>
-                                {(profile as any).coachingSchool || (profile as any).coaching_school}
-                            </Typography>
-                        </Box>
-                    )}
-
-                    {profile.bio && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 5 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            <Typography
-                                variant="body2"
-                                color="white"
-                                sx={{
-                                    mt: 1.5,
-                                    fontWeight: 300,
-                                    fontStyle: 'italic',
-                                    fontSize: '0.95rem',
-                                    lineHeight: 1.4,
-                                    textShadow: '0px 1px 3px rgba(0,0,0,0.9)',
-                                    opacity: 0.9,
-                                    maxHeight: 80,
-                                    overflow: 'hidden',
-                                }}
-                            >
-                                "{profile.bio}"
-                            </Typography>
-                        </motion.div>
+                <Box sx={{ position: 'absolute', inset: '36% 0 0', zIndex: 3, pointerEvents: 'none', background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,.08) 26%, rgba(0,0,0,.72) 100%)' }} />
+                <Box sx={{ position: 'absolute', left: 20, right: 20, bottom: 24, zIndex: 5, color: '#fff', pointerEvents: 'none', textShadow: '0 1px 8px rgba(0,0,0,.5)' }}>
+                    {photoIndex === 1 ? (
+                        <Typography sx={{ color: '#fff', fontSize: '1.08rem', lineHeight: 1.45, fontWeight: 450, maxWidth: 390 }}>{profile.bio}</Typography>
+                    ) : (
+                        <>
+                            <Typography component="h2" sx={{ color: '#fff', fontSize: '1.85rem', lineHeight: 1.1, fontWeight: 650, letterSpacing: '-.02em' }}>{profile.name} {profile.age}</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.55, mt: 0.8 }}>
+                                {photoIndex === 0 ? <LocationOnRoundedIcon sx={{ fontSize: 18 }} /> : <SchoolRoundedIcon sx={{ fontSize: 18 }} />}
+                                <Typography sx={{ color: 'rgba(255,255,255,.92)', fontSize: '.9rem', fontWeight: 450 }}>{photoIndex === 0 ? location : school}</Typography>
+                            </Box>
+                        </>
                     )}
                 </Box>
-            </Paper>
+            </Box>
         </motion.div>
     );
 };

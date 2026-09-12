@@ -6,6 +6,7 @@ import { useCheckAdminQuery } from '../api/adminApi';
 import { useDispatch } from 'react-redux';
 import { chatApi, useGetUnreadCountsQuery } from '../../features/chat/api/chatApi';
 import { socketService } from '../api/socket';
+import { MatchCelebrationQueue } from '../../features/matches/ui/MatchCelebrationQueue';
 
 export const MainLayout = () => {
     const navigate = useNavigate();
@@ -64,12 +65,13 @@ export const MainLayout = () => {
     };
 
     return (
-        <Box sx={{ pb: isMobile ? 7 : 0, pt: !isMobile ? 8 : 0, minHeight: '100vh', bgcolor: 'background.default' }}>
+        <Box sx={{ pb: isMobile ? 'calc(56px + env(safe-area-inset-bottom))' : 0, pt: !isMobile ? 8 : 0, minHeight: '100vh', boxSizing: 'border-box', bgcolor: 'background.default' }}>
             <Outlet />
+            <MatchCelebrationQueue />
 
             {/* Mobile Bottom Navigation */}
             {isMobile ? (
-                <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000 }} elevation={3}>
+                <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000, pb: 'env(safe-area-inset-bottom)' }} elevation={3}>
                     <BottomNavigation
                         showLabels
                         value={value}

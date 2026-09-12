@@ -33,13 +33,21 @@ export const matchesApi = createApi({
             return headers;
         },
     }),
-    tagTypes: ['Matches'],
+    tagTypes: ['Matches', 'MatchCelebrations'],
     endpoints: (builder) => ({
         getMatches: builder.query<Match[], void>({
             query: () => '',
             providesTags: ['Matches'],
         }),
+        getPendingCelebrations: builder.query<Match[], void>({
+            query: () => 'celebrations/pending',
+            providesTags: ['MatchCelebrations'],
+        }),
+        acknowledgeCelebration: builder.mutation<{ acknowledged: boolean }, string>({
+            query: (matchId) => ({ url: `${matchId}/celebration-seen`, method: 'POST' }),
+            invalidatesTags: ['MatchCelebrations'],
+        }),
     }),
 });
 
-export const { useGetMatchesQuery } = matchesApi;
+export const { useGetMatchesQuery, useGetPendingCelebrationsQuery, useAcknowledgeCelebrationMutation } = matchesApi;

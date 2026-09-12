@@ -41,7 +41,7 @@ export const PreferencesStep = ({ data, onChange }: { data: any, onChange: (d: a
             </Box>
 
             <Typography variant="caption" color="text.secondary">
-                Podés cambiar estos filtros desde Descubrir o desde tu perfil.
+                Podés cambiar estos filtros desde tu perfil.
             </Typography>
         </Box>
     );
